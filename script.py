@@ -11,6 +11,7 @@ from functools import update_wrapper
 from flask import make_response, request, current_app
 from getTags import TagMedia
 import json
+from connectDatabase import DBConnection
 
 def crossdomain(origin=None, methods=None, headers=None,
                 max_age=21600, attach_to_all=True,
@@ -61,9 +62,6 @@ class SignupForm(Form):
 	password = PasswordField('Pick a secure password', validators=[
         	Required(),
         	Length(min=6, message=(u'Please give a longer password'))])
-	agree = BooleanField('I agree all your Terms of Services',
-        	validators=[Required(u'You must accept our Terms of Service')])
-
 
 def create_app(configfile=None):
 	app = Flask(__name__)
@@ -83,14 +81,20 @@ def create_app(configfile=None):
 		if request.method == 'POST':
 	        	form = SignupForm(request.form)
         		if form.validate():
-				if form.email.data != 'dev@algoscale.com':
-					form.email.errors.append('Please enter correct Email')
+				dbconn = DBConnection()
+				users = dbconn.getUsers()
+				print users
+				user_exist =False
+				for user in users:
+					print user[0]
+					print user[1]
+					if( form.email.data == user[0] and form.password.data == user[1]):
+						user_exist =True
+						break
+				if(user_exist):
+					session['username']=form.email.data
+				else:		
 					return render_template('signinpage.html',  signinpage_form = form)
-				if form.password.data != 'password':
-                			form.password.errors.append('Please enter correct Password')
-                			return render_template('signinpage.html',  signinpage_form = form)
-				session['username']=form.email.data
-				print form.email.data 
             			#return render_template('home.html', email=form.email.data)
             			return render_template('getKeywordTags.html')
 			else:

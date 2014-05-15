@@ -1,0 +1,6 @@
+
+[database_section]
+dbhost=localhost
+dbname=RecommenderEngine
+user=root
+password=root
