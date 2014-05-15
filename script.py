@@ -82,7 +82,7 @@ def create_app(configfile=None):
 	        	form = SignupForm(request.form)
         		if form.validate():
 				dbconn = DBConnection()
-				users = dbconn.getUsers()
+				users = dbconn.getUsersLoginInfo()
 				print users
 				user_exist =False
 				for user in users:

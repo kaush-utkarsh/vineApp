@@ -18,16 +18,15 @@ class DBConnection:
 		# Establishing connection to database
 		self.con = mdb.connect(self.host, self.user, self.password, self.database)
 
-	def getUsers(self):
+	def getUsersLoginInfo(self):
 		""" Fetches Users from database."""
-		query= "Select * from Users;"
+		query= "Select email, password from Users;"
 		cur = self.con.cursor()
 		cur.execute(query)
                 rows = cur.fetchall()
 		userEmailPasswordList = []
 		for row in rows:
-			user= (row[4],row[5])
-			#user[row[4]] = row[5] 			
+			user= (row[0],row[1])
 			userEmailPasswordList.append(user)
                 return userEmailPasswordList
 
