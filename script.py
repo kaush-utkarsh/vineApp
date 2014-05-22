@@ -96,7 +96,7 @@ def create_app(configfile=None):
 				else:		
 					return render_template('signinpage.html',  signinpage_form = form)
             			#return render_template('home.html', email=form.email.data)
-            			return render_template('getKeywordTags.html')
+            			return render_template('getKeywordTags.html', username = session['username'])
 			else:
 				 return render_template('signup.html', form = form, page_title = 'Signup to Application')
 		return render_template('signup.html', form = SignupForm(), page_title = 'Signup to Application')
@@ -119,7 +119,18 @@ def create_app(configfile=None):
 			#tag_info["type"] = rm.type
 			list.append(tag_info)
     		return json.dumps(list)
-	
+
+        @app.route('/saveUserChoices')
+        @crossdomain(origin='*')
+        def saveUserChoices():
+		choices = request.args.get('choices', '')
+		userList = choices.split(";")
+		for k in userList:
+			userOptions = k.split(",")
+			query = "insert into saveUserChoices (email, media_url, created_time) values ('%s','%s',NOW())" % (userOptions[0],userOptions[1])
+			dbconn = DBConnection()
+			dbconn.executeQuery(query)
+		return choices	
 	return app
 
 if __name__ == '__main__':

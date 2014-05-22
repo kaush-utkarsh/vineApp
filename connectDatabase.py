@@ -31,4 +31,8 @@ class DBConnection:
                 return userEmailPasswordList
 
 
-
+	def executeQuery(self,query):
+		""" Executes the query."""
+		cur = self.con.cursor()
+		cur.execute(query)
+		self.con.commit()
