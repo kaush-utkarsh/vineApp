@@ -1,5 +1,5 @@
 
-from flask import Flask, render_template, request, session
+from flask import Flask, render_template, request, session, redirect, url_for
 from flask_bootstrap import Bootstrap
 from flask_appconfig import AppConfig
 from flask_wtf import Form, RecaptchaField
@@ -96,29 +96,22 @@ def create_app(configfile=None):
 				else:		
 					return render_template('signinpage.html',  signinpage_form = form)
             			#return render_template('home.html', email=form.email.data)
-            			return render_template('getKeywordTags.html', username = session['username'])
+            			#return render_template('getKeywordTags.html', username = session['username'])
+				return redirect(url_for('search'))
 			else:
-				 return render_template('signup.html', form = form, page_title = 'Signup to Application')
+				return render_template('signup.html', form = form, page_title = 'Signup to Application')
+		elif 'username' in session:
+			return redirect(url_for('search'))
 		return render_template('signup.html', form = SignupForm(), page_title = 'Signup to Application')
 
 	@app.route('/getKeywordMedia')
 	@crossdomain(origin='*')
 	def getKeywordMedia():
 		keyword = request.args.get('keyword', '')
+		session['max_tag_id'] = ''
 		t = TagMedia()
 		media = t.getTags(keyword)
-		list = []
-                for rm in media:
-			print rm
-			tag_info = {}
-                        tag_info["tag_url"] = rm.get_standard_resolution_url()
-			tag_info["full_name"] = rm.user.full_name
-			tag_info["profile_picture"] = rm.user.profile_picture
-			tag_info["created_time"] = str(rm.created_time) 
-			print rm.created_time
-			#tag_info["type"] = rm.type
-			list.append(tag_info)
-    		return json.dumps(list)
+		return media
 
         @app.route('/saveUserChoices')
         @crossdomain(origin='*')
@@ -127,10 +120,24 @@ def create_app(configfile=None):
 		userList = choices.split(";")
 		for k in userList:
 			userOptions = k.split(",")
-			query = "insert into saveUserChoices (email, media_url, created_time) values ('%s','%s',NOW())" % (userOptions[0],userOptions[1])
+			query = "insert into saveUserChoices (media_url, email, created_time) values ('%s','%s',NOW())" % (userOptions[0],userOptions[1])
 			dbconn = DBConnection()
 			dbconn.executeQuery(query)
 		return choices	
+
+	@app.route('/search')
+        @crossdomain(origin='*')
+        def search():
+		if 'username' in session:
+			return render_template('getKeywordTags.html', username = session['username'])
+		else:
+			return json.dumps({"message" : "Please login"})
+
+	@app.route('/logout')
+	def logout():
+		# remove the username from the session if it's there
+		session.pop('username', None)
+		return redirect(url_for('signup'))
 	return app
 
 if __name__ == '__main__':

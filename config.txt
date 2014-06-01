@@ -1,6 +1,15 @@
 
 [database_section]
 dbhost=localhost
-dbname=RecommenderEngine
+dbname=cgla_studios
 user=root
 password=root
+
+[system_section]
+size=50
+
+[authentication_section]
+CLIENT_ID=e2b196f4aeb24ce58bc5e10990cb0da5
+CLIENT_SECRET=024d7e6f16aa470d8d8c274a490bb6e7
+WEBSITE_URL=http://www.algoscale.com
+REDIRECT_URI=http://www.algoscale.com/about.html

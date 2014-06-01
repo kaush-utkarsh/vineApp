@@ -1,0 +1,106 @@
+
+<html>
+	<head>
+        	<script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+                <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+                <!-- <script src="amcharts/amcharts.js"></script> -->
+                <link rel="stylesheet" href="static/css/bootstrap.css" />
+                <link rel="stylesheet" href="static/css/bootstrap-responsive.css" />
+                <script src="http://cdnjs.cloudflare.com/ajax/libs/amcharts/2.11.3/amcharts.js"></script>
+                <link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+        	<script>
+
+			function getCheckedBoxes()
+				{	
+					var values = new Array();
+       					$.each($("input[name='case[]']:checked"),
+              					function () {
+                   					values.push($(this).val());
+              					});
+    
+					values = values.join (";")
+					$.get('saveUserChoices?choices=' + values);
+				}
+	
+			function updateTable()
+        			{
+                			var options
+                                	var txtStrng = '';
+                        		//grab ajax data
+                                		$.ajax({
+                                        		async: false,
+                                        		url: "/getKeywordMedia?keyword="+$('#keyword').val(),
+                                        		dataType: 'json',
+                                        		success: function(data, textStatus, jqXHR)
+                                        		{
+                                                 		//data - response from server
+                                                		options= data;
+                                        		},
+                                        		error: function (jqXHR, textStatus, errorThrown)
+                                        		{
+								console.log(errorThrown)
+                                        		}
+		                                });
+                		        $.each( options, function(idx, obj) {
+						//val = "'" + obj.full_name + "','"+obj.tag_url + "'";
+						val =   obj.tag_url + ",{{ username }} ";
+                                		txtStrng += "<tr>";
+                                		txtStrng += "<td><input type=checkbox  name=case[] value = " +val + "></td>";
+                                		txtStrng += "<td><video height =150 width=150 controls><source src=  "+obj.tag_url + " type=video/mp4></video></td>" ;
+                                		txtStrng += "<td>"+obj.full_name + "</td>" ;
+                                		txtStrng += "<td><img src = "+obj.profile_picture + "></td>" ;
+                                		txtStrng += "<td>"+obj.created_time + "</td>" ;
+                                		txtStrng += "</tr>";
+					 });
+
+	                        	 //clear the option list
+        	                	$('#tagsTable tbody').remove();
+                	        	//attach the option list
+                       			$(txtStrng).appendTo('#tagsTable');
+        			}
+        	</script>
+	</head>
+	<body>
+		<div class="row">
+        <div class="col-md-5">
+		<br><p ><a href={{ url_for('logout') }}>logout</a></p><br></div></div>
+		<div class="container">
+ 			<div class="row">
+      				<div class="span12">
+        				<h3 style="text-align:center;">Get Tags for Keyword</h3>
+      				</div>
+  			</div>
+        	<div class="row">
+      			<div class="span12">
+				<form class="form-search" style="text-align:center;">
+        				<input type="text" class="input-medium search-query" id="keyword">
+        				<button type="button" onclick="updateTable()" class="btn">Search</button>
+				</form>
+			</div>
+		</div>
+		<div class="row">
+      			<div class="span12">
+        		<h2 class="sub-header"></h2>
+				<form class="form-search">
+          			<div class="table-responsive">
+            				<table class="table table-striped table-bordered table-condensed pagination" id= "tagsTable">
+						<thead>
+                					<tr>
+                  						<th>Media Picture</th>
+                  						<th>Full Name</th>
+                  						<th>Display Picture</th>
+                  						<th>Created Time</th>
+                  						<th>Select</th>
+                					</tr>
+              					</thead>
+        					<tbody>
+						</tbody>
+        				</table>
+					<button type="button" onclick="getCheckedBoxes()" class="btn" style="text-align:center;">Save</button>
+				</form>
+				</div>
+			</div>
+		</div>		
+	</body>
+</html>
+                             
