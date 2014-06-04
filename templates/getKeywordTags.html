@@ -22,10 +22,16 @@
 
 			function validateVideos(){
 				var $rows = $("#tagsTable tr");
+				var counter = 1;
 				for(var i=1;i<=tot_videos;i++){
 					if(sel_videos.indexOf(i) == -1)
 					{
 						$rows.eq(i).hide();
+					}
+					else
+					{
+						$rows.eq(i).find('td:eq(0)').html(counter)
+						counter = counter + 1;
 					}
 				}
 					$("#val_video").hide();
@@ -49,7 +55,7 @@
 				}
 
 
-			function updateTable()
+			function updateTable(url)
         			{
 					$("#val_video").show();
 					$("#save_video").hide();
@@ -62,7 +68,7 @@
 						$("#loading").show();
                                 		$.ajax({
                                         		//async: true,
-                                        		url: "/getKeywordMedia?keyword="+$('#keyword').val(),
+                                        		url: url + "?keyword="+$('#keyword').val(),
                                         		dataType: 'json',
                                         		success: function(data, textStatus, jqXHR)
                                         		{
@@ -74,9 +80,8 @@
                                                 			txtStrng += "<tr>";
                                             	    			txtStrng += "<td><center>"+obj.serial_no + "</center></td>" ;
                                                 			txtStrng += "<td><center><input type=\"checkbox\"  name=\"case[]\" value = \"" +val + "\" onchange=\"toggleCheckbox(this, "+obj.serial_no+")\"></center></td>";
-                                                			txtStrng += "<td><video height=\"250\" width=\"250\" controls><source src=  "+obj.tag_url + " type=video/mp4></video></td>" ;
-                                            	    			txtStrng += "<td>"+obj.full_name + "</td>" ;
-                                                			txtStrng += "<td><img height =100 width=100 src = "+obj.profile_picture + "></td>" ;
+                                                			txtStrng += "<td><video height=\"175\" width=\"175\" controls><source src=  "+obj.tag_url + " type=video/mp4></video></td>" ;
+                                            	    			txtStrng += "<td><img height =100 width=100 src = "+obj.profile_picture + "> <br><br>" + obj.full_name + "</td>" ;
                                                 			txtStrng += "<td>"+obj.created_time + "</td>" ;
                                                 			txtStrng += "<td>"+obj.text + "</td>" ;
                                                 			txtStrng += "</tr>";
@@ -104,7 +109,7 @@
 		<div class="navbar-collapse collapse">
         	</div>
 		<div class="container">
-		<div style="position:fixed;z-index:1000;background-color:#ffe;">
+		<div style="position:fixed;z-index:1000;background-color:#ffe;height=10px">
 			<div class="row">
 			<ul class="nav navbar-nav navbar-right" style="margin-right:10px;">
 				<li><a href={{ url_for('logout') }}>Logout</a></li>
@@ -120,13 +125,14 @@
       			<div class="span12">
 				<form class="form-search" style="text-align:center;">
         				<input type="text" class="input-medium search-query" id="keyword">
-					<button type="button" onclick="updateTable()" class="btn">Search</button>
+					<button type="button" onclick="updateTable('/getKeywordMedia')" class="btn">Search</button>
 				</form>
 			</div>
 		</div>
 		<div class="row">
 			<div class="span12" style="margin-bottom:10px;">
 				<button type="button" onclick="validateVideos()" class="btn" style="text-align:center;" id="val_video">Shortlist Videos</button>
+				<button type="button" onclick="updateTable('/getMoreVideos')" class="btn">Get More Videos</button>
 				<button type="button" onclick="getCheckedBoxes()" class="btn" style="text-align:center;display:none;" id="save_video">Save</button>
 			</div>
 		</div>
@@ -139,11 +145,10 @@
             				<table class="table table-striped table-bordered table-condensed tablesorter" id= "tagsTable">
 						<thead>
                 					<tr>
-                  						<th>S.No</th>
+                  						<th> </th>
                   						<th>Select</th>
                   						<th>Video</th>
-                  						<th>Full Name</th>
-                  						<th>Avatar</th>
+                  						<th>User</th>
                   						<th >Created Time</th>
                   						<th >Text</th>
                 					</tr>

@@ -5,6 +5,7 @@ import json
 import types
 import datetime
 import ConfigParser
+import datetime
 
 class TagMedia:
 
@@ -40,7 +41,7 @@ class TagMedia:
 					tag_info["tag_url"] = rm.get_standard_resolution_url()
                         		tag_info["full_name"] = rm.user.full_name + " (" + rm.user.id + ")"
                         		tag_info["profile_picture"] = rm.user.profile_picture
-                        		tag_info["created_time"] = datetime.datetime.strptime(str(rm.created_time), '%Y-%m-%d %H:%M:%S').strftime('%H:%M:%S %b %d %Y')
+                        		tag_info["created_time"] = self.differenceBetweenDates(rm.created_time) + " ago, <br>" + datetime.datetime.strptime(str(rm.created_time), '%Y-%m-%d %H:%M:%S').strftime('%H:%M:%S %b %d %Y')
                         		tag_info["text"] = rm.caption.text
 					if(len(self.media_list) == int(self.videos_size)):
 						break
@@ -53,4 +54,22 @@ class TagMedia:
        	       		return json.dumps(self.media_list)
 		except Exception,e:
 			return json.dumps(self.media_list)
+
+	def differenceBetweenDates(self,created_time):
+		t2 = datetime.datetime.now()
+                diff = t2 - created_time;
+		diff =str(diff)
+		if len(diff.split(",")) > 1:
+			return diff.split(",")[0]
+		else:
+			l = diff.split(":")
+			h = l[0]
+			m = l[1]
+			s = l[2].split(".")[0]
+			if( int(h) > 0):
+				return h + " hours"
+			elif ( int(m) >  0):
+				return m + " minutes"
+			else:
+				return s + " seconds"
 

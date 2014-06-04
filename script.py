@@ -113,6 +113,14 @@ def create_app(configfile=None):
 		media = t.getTags(keyword)
 		return media
 
+	@app.route('/getMoreVideos')
+        @crossdomain(origin='*')
+        def getMoreVideos():
+                keyword = request.args.get('keyword', '')
+                t = TagMedia()
+                media = t.getTags(keyword)
+                return media
+
         @app.route('/saveUserChoices')
         @crossdomain(origin='*')
         def saveUserChoices():
