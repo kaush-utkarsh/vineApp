@@ -22,71 +22,46 @@
 			var tot_videos = 0;
 			var selected_video =[];
 
+			function fixSerialNumber(){
+				var $rows = $("#tagsTable tr");
+				var cnt = 1;
+				for(var j=1; j<$rows.length; j++){
+					if($rows.eq(j).css("display") != "none"){
+						$rows.eq(j).find('td:eq(0)').html('<font size="+2">' + cnt + '</font>');
+						cnt += 1;
+					}
+				}
+			}
+
 			function validateVideos(){
 				var $rows = $("#tagsTable tr");
 				var counter = 1;
-				//selected_video = [];
-				alert(sel_videos);
-				for(var i=1;i<$rows.length;i++){
-					var video_id = $rows.eq(i).find('td:eq(7)').text();
-					if(sel_videos.indexOf(video_id) == -1)
-					{
-						$rows.eq(i).hide();
-					}
-					else
-					{
-						$rows.eq(i).hide();
-						//$rows.eq(i).find('td:eq(0)').html(counter)
-						//counter = counter + 1;
-						selected_video.push($rows.eq(i));
-					}
-				}
-				
-				//for( var  j=0; j<selected_video.length;j++) {
+			
 				for( var  j=1; j<$rows.length;j++) {
+					$rows.eq(j).hide();
 					if($rows.eq(j).find('td:eq(1) input[type=checkbox]').attr('checked'))
 						$rows.eq(j).show();
-				//	$row = selected_video[j];
-
-				//	$row.eq(i).find('td:eq(0)').html(counter)
 					counter = counter + 1;
-					//$row.show();
 				}
-//				alert(selected_video);
+				fixSerialNumber();
 				$("#val_video").hide();
 				$("#save_video").show();
 				$("#back").show();
 			}
 
 			function toggleCheckbox(elem, serial){
-				if($(elem).is(':checked')) {
-					sel_videos.push(serial)
-				}
-				else{
-					for(var i=0;i<sel_videos.length;i++){
-						if(sel_videos[i]==serial){
-							sel_videos.splice(i,1)
-							 break;
-						}
-					}
-				}
 			}
 
 			function backClick()
 			{
 				var $rows = $("#tagsTable tr");
-				var counter = 1;
-				alert(tot_videos);
-//				for(var i=1;i<=tot_videos;i++){
 				for(var i=1; i<$rows.length; i++){
 					$rows.eq(i).hide();
 				}
 				for(var i=$rows.length-tot_videos;i< $rows.length;i++){
-				//	$rows.eq(i).find('td:eq(0)').html(counter)
 					$rows.eq(i).show();
-                                        counter = counter + 1;
 				}
-		//		$rows.show();
+				fixSerialNumber();
 				$("#val_video").show();
                                 $("#save_video").hide();
                                 $("#back").hide();
@@ -140,7 +115,6 @@
 									tot_videos+=1;
 								});
 								  //clear the option list
-                                        //                        $('#tagsTable tbody').remove();
 								for(var i=1; i<$("#tagsTable tr").length; i++){
 									 $("#tagsTable tr").eq(i).hide();
 								}
@@ -160,9 +134,7 @@
                                         					var offset = $(this).scrollTop();
 
                                 				if (offset >= tableOffset && $fixedHeader.is(":hidden")) {
-                                        				//$fixedHeader.show();
 									$("#header-fixed").show();
-							//		alert($header.val());
                                 				}
                                 				else if (offset < tableOffset) {
                                         				$fixedHeader.hide();
