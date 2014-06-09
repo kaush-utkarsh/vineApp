@@ -8,6 +8,7 @@
 		<link rel="stylesheet" href="static/css/bootstrap.css" />
                 <link rel="stylesheet" href="static/css/bootstrap-responsive.css" />
                 <link rel="stylesheet" href="static/css/bootstrap.min.css" />
+                <link rel="stylesheet" href="static/css/loader.css" />
 		
 		<link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
 		<script>
@@ -19,29 +20,77 @@
 		<script>
 			var sel_videos = [];
 			var tot_videos = 0;
+			var selected_video =[];
 
 			function validateVideos(){
 				var $rows = $("#tagsTable tr");
 				var counter = 1;
-				for(var i=1;i<=tot_videos;i++){
-					if(sel_videos.indexOf(i) == -1)
+				//selected_video = [];
+				alert(sel_videos);
+				for(var i=1;i<$rows.length;i++){
+					var video_id = $rows.eq(i).find('td:eq(7)').text();
+					if(sel_videos.indexOf(video_id) == -1)
 					{
 						$rows.eq(i).hide();
 					}
 					else
 					{
-						$rows.eq(i).find('td:eq(0)').html(counter)
-						counter = counter + 1;
+						$rows.eq(i).hide();
+						//$rows.eq(i).find('td:eq(0)').html(counter)
+						//counter = counter + 1;
+						selected_video.push($rows.eq(i));
 					}
 				}
-					$("#val_video").hide();
-					$("#save_video").show();
+				
+				//for( var  j=0; j<selected_video.length;j++) {
+				for( var  j=1; j<$rows.length;j++) {
+					if($rows.eq(j).find('td:eq(1) input[type=checkbox]').attr('checked'))
+						$rows.eq(j).show();
+				//	$row = selected_video[j];
+
+				//	$row.eq(i).find('td:eq(0)').html(counter)
+					counter = counter + 1;
+					//$row.show();
+				}
+//				alert(selected_video);
+				$("#val_video").hide();
+				$("#save_video").show();
+				$("#back").show();
 			}
 
 			function toggleCheckbox(elem, serial){
-				sel_videos.push(serial);
+				if($(elem).is(':checked')) {
+					sel_videos.push(serial)
+				}
+				else{
+					for(var i=0;i<sel_videos.length;i++){
+						if(sel_videos[i]==serial){
+							sel_videos.splice(i,1)
+							 break;
+						}
+					}
+				}
 			}
 
+			function backClick()
+			{
+				var $rows = $("#tagsTable tr");
+				var counter = 1;
+				alert(tot_videos);
+//				for(var i=1;i<=tot_videos;i++){
+				for(var i=1; i<$rows.length; i++){
+					$rows.eq(i).hide();
+				}
+				for(var i=$rows.length-tot_videos;i< $rows.length;i++){
+				//	$rows.eq(i).find('td:eq(0)').html(counter)
+					$rows.eq(i).show();
+                                        counter = counter + 1;
+				}
+		//		$rows.show();
+				$("#val_video").show();
+                                $("#save_video").hide();
+                                $("#back").hide();
+			}
 			function getCheckedBoxes()
 				{	
 					var values = new Array();
@@ -59,6 +108,7 @@
         			{
 					$("#val_video").show();
 					$("#save_video").hide();
+					$("#back").hide();
                 			var options
                                 	var txtStrng = '';
 					sel_videos = [];
@@ -78,24 +128,47 @@
                 			                                //val = "'" + obj.full_name + "','"+obj.tag_url + "'";
                                         			        val =   obj.tag_url + ",{{ username }} ";
                                                 			txtStrng += "<tr>";
-                                            	    			txtStrng += "<td><center>"+obj.serial_no + "</center></td>" ;
-                                                			txtStrng += "<td><center><input type=\"checkbox\"  name=\"case[]\" value = \"" +val + "\" onchange=\"toggleCheckbox(this, "+obj.serial_no+")\"></center></td>";
+                                            	    			txtStrng += "<td><center><font size=\"+2\">"+obj.serial_no + "</font></center></td>" ;
+                                                			txtStrng += "<td><center><input type=\"checkbox\"  name=\"case[]\" value = \"" +val + "\" onchange=\"toggleCheckbox(this, '"+obj.id+"')\"></center></td>";
                                                 			txtStrng += "<td><video height=\"175\" width=\"175\" controls><source src=  "+obj.tag_url + " type=video/mp4></video></td>" ;
                                             	    			txtStrng += "<td><img height =100 width=100 src = "+obj.profile_picture + "> <br><br>" + obj.full_name + "</td>" ;
                                                 			txtStrng += "<td>"+obj.created_time + "</td>" ;
                                                 			txtStrng += "<td>"+obj.text + "</td>" ;
+                                                			txtStrng += "<td>"+$('#keyword').val() + "</td>" ;
+                                                			txtStrng += "<td style=\"display:none;\">"+obj.id + "</td>" ;
                                                 			txtStrng += "</tr>";
 									tot_videos+=1;
-                                         			});
+								});
+								  //clear the option list
+                                        //                        $('#tagsTable tbody').remove();
+								for(var i=1; i<$("#tagsTable tr").length; i++){
+									 $("#tagsTable tr").eq(i).hide();
+								}
+                                                                //attach the option list
+                                                                $(txtStrng).appendTo('#tagsTable');
+
 		
-                			                         //clear the option list
-                                        			$('#tagsTable tbody').remove();
-                                        			//attach the option list
-                                        			$(txtStrng).appendTo('#tagsTable');
                                         		},
 							complete: function()
 							{
        	 							$('#loading').hide();
+								var tableOffset = $("#tagsTable").offset().top;
+                        				        var $header = $("#tagsTable > thead").clone();
+                                				var $fixedHeader = $("#header-fixed").html($header);
+
+                                				$(window).bind("scroll", function() {
+                                        					var offset = $(this).scrollTop();
+
+                                				if (offset >= tableOffset && $fixedHeader.is(":hidden")) {
+                                        				//$fixedHeader.show();
+									$("#header-fixed").show();
+							//		alert($header.val());
+                                				}
+                                				else if (offset < tableOffset) {
+                                        				$fixedHeader.hide();
+                                				}
+                                				});
+
       							},			
                                         		error: function (jqXHR, textStatus, errorThrown)
                                         		{
@@ -109,36 +182,29 @@
 		<div class="navbar-collapse collapse">
         	</div>
 		<div class="container">
-		<div style="position:fixed;z-index:1000;background-color:#ffe;height=10px">
+		<div style="position:fixed;z-index:1000;background-color:#ffe;">
 			<div class="row">
 			<ul class="nav navbar-nav navbar-right" style="margin-right:10px;">
 				<li><a href={{ url_for('logout') }}>Logout</a></li>
 			</ul>
-			</div>
- 			<div class="row">
-      				<div class="span12">
-        				<h3 style="text-align:center;">Instagram</h3>
-        				<h4 style="text-align:center;">Enter keyword or userid</h4>
-      				</div>
-  			</div>
-        	<div class="row">
-      			<div class="span12">
+                                <h4 style="text-align:center;">Instagram Enter keyword or userid</h4>
 				<form class="form-search" style="text-align:center;">
-        				<input type="text" class="input-medium search-query" id="keyword">
-					<button type="button" onclick="updateTable('/getKeywordMedia')" class="btn">Search</button>
-				</form>
+                                        <input type="text" class="input-medium search-query" id="keyword">
+                                        <button type="button" onclick="updateTable('/getKeywordMedia')" class="btn">Search</button>
+                                </form>
+
 			</div>
-		</div>
 		<div class="row">
 			<div class="span12" style="margin-bottom:10px;">
 				<button type="button" onclick="validateVideos()" class="btn" style="text-align:center;" id="val_video">Shortlist Videos</button>
 				<button type="button" onclick="updateTable('/getMoreVideos')" class="btn">Get More Videos</button>
 				<button type="button" onclick="getCheckedBoxes()" class="btn" style="text-align:center;display:none;" id="save_video">Save</button>
+				<button type="button" onclick="backClick()" class="btn" style="text-align:center;display:none;" id="back">Back</button>
 			</div>
 		</div>
 		</div>
-		<div class="row" style="position:absolute;top:250px;">
-      			<div class="span12">
+		<div class="row" style="top:120px;position:absolute">
+			<div class="span12">
         		<h2 class="sub-header"></h2>
 				<form class="form-search">
           			<div class="table-responsive">
@@ -151,12 +217,14 @@
                   						<th>User</th>
                   						<th >Created Time</th>
                   						<th >Text</th>
+								<th>Tag</th>
                 					</tr>
               					</thead>
         					<tbody>
 						</tbody>
         				</table>
 					<div class="loader" id="loading"></div>
+					<table id="header-fixed" class="span12"></table>
 				</form>
 				</div>
 			</div>
