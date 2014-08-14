@@ -34,5 +34,6 @@ class DBConnection:
 	def executeQuery(self,query):
 		""" Executes the query."""
 		cur = self.con.cursor()
+                self.con.set_character_set('utf8')
 		cur.execute(query)
 		self.con.commit()

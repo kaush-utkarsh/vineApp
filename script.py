@@ -12,6 +12,7 @@ from flask import make_response, request, current_app
 from getTags import TagMedia
 import json
 from connectDatabase import DBConnection
+import time
 
 def crossdomain(origin=None, methods=None, headers=None,
                 max_age=21600, attach_to_all=True,
@@ -125,10 +126,17 @@ def create_app(configfile=None):
         @crossdomain(origin='*')
         def saveUserChoices():
 		choices = request.args.get('choices', '')
-		userList = choices.split(";")
+		choices = choices.replace("<br>","")
+		userList = choices.split(";;;")
+                i = 1
+                print 'userList..................' , userList
 		for k in userList:
-			userOptions = k.split(",")
-			query = "insert into saveUserChoices (media_url, email, created_time) values ('%s','%s',NOW())" % (userOptions[0],userOptions[1])
+			userOptions = k.split(",:")
+			user_text = userOptions[7].replace("'s","")
+			user_name = userOptions[4].replace("'s","")
+			query = """insert into saveUserChoices (id, email ,tag , video_url, user_profile_picture_url ,user_name , created_time, media_id, prefix, standard,user_text) values (%s,'%s','%s','%s','%s','%s','%s','%s','%s',%s,'%s');""" % (int(time.time()*1000),userOptions[0],userOptions[1],userOptions[2], userOptions[3], user_name, userOptions[5],userOptions[6],str(userOptions[8]+str(i)),userOptions[9],user_text)
+			print query
+                        i = i + 1
 			dbconn = DBConnection()
 			dbconn.executeQuery(query)
 		return choices	
@@ -139,7 +147,7 @@ def create_app(configfile=None):
 		if 'username' in session:
 			return render_template('getKeywordTags.html', username = session['username'])
 		else:
-			return json.dumps({"message" : "Please login"})
+			return redirect(url_for('signup'))
 
 	@app.route('/logout')
 	def logout():

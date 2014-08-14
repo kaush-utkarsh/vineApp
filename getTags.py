@@ -37,26 +37,33 @@ class TagMedia:
               		for rm in recent_media:
                         	tag_info = {}
 				if(rm.type == "video"):
+				 try:
 					tag_info["serial_no"] = int(len(self.media_list) + 1) 	
 					tag_info["tag_url"] = rm.get_standard_resolution_url()
                         		tag_info["full_name"] = rm.user.full_name + " (" + rm.user.id + ")"
                         		tag_info["profile_picture"] = rm.user.profile_picture
-                        		tag_info["created_time"] = self.differenceBetweenDates(rm.created_time) + " ago, <br>" + datetime.datetime.strptime(str(rm.created_time), '%Y-%m-%d %H:%M:%S').strftime('%H:%M:%S %b %d %Y')
+                        		tag_info["created_time"] = (self.differenceBetweenDates(rm.created_time) + " ago, <br>" + datetime.datetime.strptime(str(rm.created_time), '%Y-%m-%d %H:%M:%S').strftime('%H:%M:%S %b %d %Y')).replace("-", "")
                         		tag_info["text"] = rm.caption.text
+					tag_info["tag"] = tag_name
+					tag_info["id"] = rm.id
 					if(len(self.media_list) == int(self.videos_size)):
 						break
 					else:
                         			self.media_list.append(tag_info)
+				 except:
+				  continue
 			print "len(self.media_list)", len(self.media_list)
 			#while (len(self.media_list) < 30):
 			if (len(self.media_list) < int(self.videos_size)):
 				self.getTags(tag_name=tag_name)
        	       		return json.dumps(self.media_list)
 		except Exception,e:
+			import traceback
+			print traceback.print_exc()
 			return json.dumps(self.media_list)
 
 	def differenceBetweenDates(self,created_time):
-		t2 = datetime.datetime.now()
+		t2 = datetime.datetime.now() + datetime.timedelta(seconds=300)
                 diff = t2 - created_time;
 		diff =str(diff)
 		if len(diff.split(",")) > 1:
