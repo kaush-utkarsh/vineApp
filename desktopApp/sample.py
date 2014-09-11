@@ -37,9 +37,9 @@ class MyFrame(wx.Frame):
         self.Email = wx.TextCtrl(self.panel, -1, "")
         self.Password = wx.TextCtrl(self.panel, -1, "")
         self.calc_btn = wx.Button(self.panel, -1, ' Login ')
-        self.calc_btn.Bind(wx.EVT_BUTTON, self.makeList)	
+        self.calc_btn.Bind(wx.EVT_BUTTON, self.makeList)
 
-        
+
         # use gridbagsizer for layout of widgets
         sizer = wx.GridBagSizer(vgap=10, hgap=10)
         sizer.Add(label1, pos=(0, 0))
@@ -47,13 +47,17 @@ class MyFrame(wx.Frame):
         sizer.Add(label2, pos=(1, 0))
         sizer.Add(self.Password, pos=(1, 2))
         sizer.Add(self.calc_btn, pos=(2, 1), span=(1, 2))
-        # span=(1, 2) --> allow to span over 2 columns 
+        # span=(1, 2) --> allow to span over 2 columns
         # use boxsizer to add border around sizer
         border = wx.BoxSizer()
         border.Add(sizer, 0, wx.ALL, 225)
         self.panel.SetSizerAndFit(border)
         self.Fit()
-       
+
+    def login(self, event):
+        login_thread = Thread(target = self.makeList)
+        login_thread.start()
+
     def makeList(self, event):
         """print shopping list"""
         # query database
@@ -69,8 +73,8 @@ class MyFrame(wx.Frame):
             self.getDirPath()
             for child in self.panel.GetChildren():
                 child.Destroy()
-            cbtn = wx.Button(self.panel, label='Start Tracking', pos=(60, 100))
-            cbtn.Bind(wx.EVT_BUTTON, self.OnDownload)
+            self.toggle_btn = wx.Button(self.panel, label='Start Tracking', pos=(60, 100))
+            self.toggle_btn.Bind(wx.EVT_BUTTON, self.OnDownload)
             cbtn = wx.Button(self.panel, label='Change Directory', pos=(160, 100))
             cbtn.Bind(wx.EVT_BUTTON, self.OnChange)
             filedirpath = wx.StaticText(self.panel, -1, "Current Directory Path:", pos=(60,140))
@@ -83,24 +87,24 @@ class MyFrame(wx.Frame):
             self.Bind(wx.EVT_TIMER, self.update, self.timer)
             self.SetSize((675, 500))
             self.SetTitle("")
-            self.Show(True) 		
+            self.Show(True)
         else:
             self.SetTitle("Incorrect User details entered")
-			
-    def ShowOrHideTitle(self, e):     
+
+    def ShowOrHideTitle(self, e):
         sender = e.GetEventObject()
         isChecked = sender.GetValue()
-        
+
         if isChecked:
             print "checked"
-            self.checkedVideos.append(self.cb.GetLabel()) 
-            print self.videosList	
-        else: 
+            self.checkedVideos.append(self.cb.GetLabel())
+            print self.videosList
+        else:
             self.SetTitle('')
 
     def OnClear(self, e):
         self.result.SetValue("")
-		
+
     def onEnter(self, event):
         # get the values from the input widgets
         Email = str(self.Email.GetValue())
@@ -137,7 +141,9 @@ class MyFrame(wx.Frame):
                     self.dirpath = line
 
     def update(self, event):
-        self.startProcessing()
+        if not hasattr(self, 'processing_thread') or not self.processing_thread.is_alive():
+            self.processing_thread = Thread(target = self.startProcessing)
+            self.processing_thread.start()
 
     def startProcessing(self):
         self.getVideos()
@@ -153,7 +159,7 @@ class MyFrame(wx.Frame):
             self.result.SetForegroundColour("White")
             self.pos_y = self.pos_y + 20
             self.markVideosAsDownloaded(recordDict["video"])
-		
+
     def OnDownload(self, e):
         if (os.path.exists(self.pathFilename)):
             self.getDirPath()
@@ -165,10 +171,14 @@ class MyFrame(wx.Frame):
             self.dirpath = dialog.GetPath().replace("\\","\\\\")+ "\\\\"
             self.writeDirPathToFile()
             self.pathText.SetValue(self.dirpath)
-        print self.dirpath
+        # print "Target path:- ", self.dirpath
         self.pos_y = 180
-        self.startProcessing()
-        self.timer.Start(2000)
+        if self.toggle_btn.GetLabel() == "Start Tracking":
+            self.timer.Start(3000)
+            self.toggle_btn.SetLabel("Stop Tracking")
+        else:
+            self.timer.Stop()
+            self.toggle_btn.SetLabel("Start Tracking")
 
     def convertFiles(self,recordDict):
         print "recordDict[standard]", recordDict["standard"]
@@ -178,8 +188,8 @@ class MyFrame(wx.Frame):
         self.createXML(recordDict)
 
     def getCurrentTime(self):
-        return datetime.datetime.now().strftime('%H:%M:%S %b %d %Y') 
-			
+        return datetime.datetime.now().strftime('%H:%M:%S %b %d %Y')
+
     def downloadFiles(self,recordDict):
         f = urllib2.urlopen(recordDict["video"])
         data = f.read()
@@ -188,7 +198,7 @@ class MyFrame(wx.Frame):
         f = urllib2.urlopen(recordDict["avatar"])
         self.result.AppendText(self.getCurrentTime() + "    " + recordDict["video_filename"] + "    Downloaded" +  "\n")
         data = f.read()
-        with open(recordDict["avatar_filename"], "wb") as code: 
+        with open(recordDict["avatar_filename"], "wb") as code:
             code.write(data)
         self.Show(True)
         thread = Thread(target = self.convertFiles, args = (recordDict, ))
@@ -217,8 +227,8 @@ class MyFrame(wx.Frame):
             recordsDict["standard"] = row[5]
             recordsDict["text"] = row[6]
             self.videosList.append(recordsDict)
-            
-			
+
+
     def markVideosAsDownloaded(self, video_url):
         db=MySQLdb.connect("54.85.157.242", "root", "root", "cgla_studios")
         cur = db.cursor()
