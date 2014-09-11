@@ -37,7 +37,7 @@ class MyFrame(wx.Frame):
         self.Email = wx.TextCtrl(self.panel, -1, "")
         self.Password = wx.TextCtrl(self.panel, -1, "")
         self.calc_btn = wx.Button(self.panel, -1, ' Login ')
-        self.calc_btn.Bind(wx.EVT_BUTTON, self.makeList)
+        self.calc_btn.Bind(wx.EVT_BUTTON, self.login)
 
 
         # use gridbagsizer for layout of widgets
@@ -55,12 +55,10 @@ class MyFrame(wx.Frame):
         self.Fit()
 
     def login(self, event):
-        login_thread = Thread(target = self.makeList)
+        login_thread = Thread(target = self.login_check)
         login_thread.start()
 
-    def makeList(self, event):
-        """print shopping list"""
-        # query database
+    def login_check(self):
         db=MySQLdb.connect("54.85.157.242", "root", "root", "cgla_studios")
         cursor = db.cursor()
         Email = self.Email.GetValue()
@@ -69,7 +67,20 @@ class MyFrame(wx.Frame):
         sql = """ SELECT * FROM Users where email = '%s' and password = '%s'""" %(Email,Password)
         cursor.execute(sql)
         rows = cursor.fetchall()
-        if cursor.rowcount > 0:
+        wx.CallAfter(self.makeList, cursor.rowcount)
+
+    def makeList(self, success):
+        # """print shopping list"""
+        # # query database
+        # db=MySQLdb.connect("54.85.157.242", "root", "root", "cgla_studios")
+        # cursor = db.cursor()
+        # Email = self.Email.GetValue()
+        # Password = self.Password.GetValue()
+        # # get the values from the input widgets
+        # sql = """ SELECT * FROM Users where email = '%s' and password = '%s'""" %(Email,Password)
+        # cursor.execute(sql)
+        # rows = cursor.fetchall()
+        if success > 0:
             self.getDirPath()
             for child in self.panel.GetChildren():
                 child.Destroy()
