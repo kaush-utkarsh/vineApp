@@ -1,5 +1,5 @@
 import wx
-import MySQLdb
+# import MySQLdb
 import urllib
 import time
 import urllib2
@@ -9,10 +9,16 @@ import xml.etree.ElementTree as ET
 import os.path
 import datetime
 import os
+from cookielib import CookieJar
+import json
 
 
-db=MySQLdb.connect("54.85.157.242", "root", "root", "cgla_studios")
-cursor = db.cursor()
+# db=MySQLdb.connect("54.85.157.242", "root", "root", "cgla_studios")
+# cursor = db.cursor()
+base_api_url = "http://54.85.157.242:5000/api/"
+login_url = base_api_url + "login"
+get_videos_url = base_api_url + "getvideos"
+video_downloaded_url = base_api_url + "videodownloaded/"
 
 class MyFrame(wx.Frame):
 
@@ -54,24 +60,20 @@ class MyFrame(wx.Frame):
         self.panel.SetSizerAndFit(border)
         self.Fit()
 
+        cj = CookieJar()
+        self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+
+    def send_request(self, url, data = None):
+        if data:
+            data = urllib.urlencode(data)
+        response = self.opener.open(url, data)
+        return json.loads(response.read())
+
     def login(self, event):
         login_thread = Thread(target = self.login_check)
         login_thread.start()
 
     def login_check(self):
-        db=MySQLdb.connect("54.85.157.242", "root", "root", "cgla_studios")
-        cursor = db.cursor()
-        Email = self.Email.GetValue()
-        Password = self.Password.GetValue()
-        # get the values from the input widgets
-        sql = """ SELECT * FROM Users where email = '%s' and password = '%s'""" %(Email,Password)
-        cursor.execute(sql)
-        rows = cursor.fetchall()
-        wx.CallAfter(self.makeList, cursor.rowcount)
-
-    def makeList(self, success):
-        # """print shopping list"""
-        # # query database
         # db=MySQLdb.connect("54.85.157.242", "root", "root", "cgla_studios")
         # cursor = db.cursor()
         # Email = self.Email.GetValue()
@@ -80,6 +82,13 @@ class MyFrame(wx.Frame):
         # sql = """ SELECT * FROM Users where email = '%s' and password = '%s'""" %(Email,Password)
         # cursor.execute(sql)
         # rows = cursor.fetchall()
+        creds = {"email": self.Email.GetValue(), "password": self.Password.GetValue()}
+        # data_encoded = urllib.urlencode(creds)
+        # response = opener.open(login_url, data_encoded)
+        # content = response.read()
+        wx.CallAfter(self.makeList, self.send_request(login_url, creds).get("response", -1))
+
+    def makeList(self, success):
         if success > 0:
             self.getDirPath()
             for child in self.panel.GetChildren():
@@ -169,7 +178,7 @@ class MyFrame(wx.Frame):
             self.downloadFiles(recordDict)
             self.result.SetForegroundColour("White")
             self.pos_y = self.pos_y + 20
-            self.markVideosAsDownloaded(recordDict["video"])
+            self.markVideosAsDownloaded(recordDict["vid"])
 
     def OnDownload(self, e):
         if (os.path.exists(self.pathFilename)):
@@ -218,34 +227,37 @@ class MyFrame(wx.Frame):
 
     def getVideos(self):
         # query database
-        db=MySQLdb.connect("54.85.157.242", "root", "root", "cgla_studios")
-        cur = db.cursor()
-        self.videosList = []
-        sql = """ SELECT user_name,video_url,created_time,user_profile_picture_url,prefix,standard,user_text FROM saveUserChoices where downloaded = 0;"""
-        #sql = """ SELECT user_name,video_url,created_time,user_profile_picture_url,prefix,standard,user_text FROM saveUserChoices;"""
-        cur.execute(sql)
-        records = cur.fetchall()
-        for row in records:
-            print row[0]
-            recordsDict = {}
-            userdetails = row[0].split("(")
-            recordsDict["uName"] = userdetails[0]
-            recordsDict["uId"] = userdetails[1].replace(")","")
-            recordsDict["video"] = row[1]
-            recordsDict["date"] = row[2]
-            recordsDict["avatar"] = row[3]
-            recordsDict["prefix"] = row[4]
-            recordsDict["standard"] = row[5]
-            recordsDict["text"] = row[6]
-            self.videosList.append(recordsDict)
+        # db=MySQLdb.connect("54.85.157.242", "root", "root", "cgla_studios")
+        # cur = db.cursor()
+        # self.videosList = []
+        # sql = """ SELECT user_name,video_url,created_time,user_profile_picture_url,prefix,standard,user_text FROM saveUserChoices where downloaded = 0;"""
+        # #sql = """ SELECT user_name,video_url,created_time,user_profile_picture_url,prefix,standard,user_text FROM saveUserChoices;"""
+        # cur.execute(sql)
+        # records = cur.fetchall()
+        self.videosList = self.send_request(get_videos_url, None)
+
+        # for row in records:
+        #     print row[0]
+        #     recordsDict = {}
+        #     userdetails = row[0].split("(")
+        #     recordsDict["uName"] = userdetails[0]
+        #     recordsDict["uId"] = userdetails[1].replace(")","")
+        #     recordsDict["video"] = row[1]
+        #     recordsDict["date"] = row[2]
+        #     recordsDict["avatar"] = row[3]
+        #     recordsDict["prefix"] = row[4]
+        #     recordsDict["standard"] = row[5]
+        #     recordsDict["text"] = row[6]
+        #     self.videosList.append(recordsDict)
 
 
-    def markVideosAsDownloaded(self, video_url):
-        db=MySQLdb.connect("54.85.157.242", "root", "root", "cgla_studios")
-        cur = db.cursor()
-        sql = """ update saveUserChoices set downloaded = 1 where video_url = '%s' and downloaded = 0;""" % (video_url)
-        cur.execute(sql)
-        db.commit()
+    def markVideosAsDownloaded(self, video_id):
+        self.send_request(video_downloaded_url + video_id)
+        # db=MySQLdb.connect("54.85.157.242", "root", "root", "cgla_studios")
+        # cur = db.cursor()
+        # sql = """ update saveUserChoices set downloaded = 1 where video_url = '%s' and downloaded = 0;""" % (video_url)
+        # cur.execute(sql)
+        # db.commit()
 
     def createXML(self, recordDict):
         post = ET.Element("post")

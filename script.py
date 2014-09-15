@@ -1,5 +1,4 @@
-
-from flask import Flask, render_template, request, session, redirect, url_for
+from flask import Flask, render_template, request, session, redirect, url_for, jsonify
 from flask_bootstrap import Bootstrap
 from flask_appconfig import AppConfig
 from flask_wtf import Form, RecaptchaField
@@ -11,8 +10,9 @@ from functools import update_wrapper
 from flask import make_response, request, current_app
 from getTags import TagMedia
 import json
-from connectDatabase import DBConnection
 import time
+from models import *
+from connectDatabase import DBConnection
 
 def crossdomain(origin=None, methods=None, headers=None,
                 max_age=21600, attach_to_all=True,
@@ -56,105 +56,137 @@ def crossdomain(origin=None, methods=None, headers=None,
     return decorator
 
 class SignupForm(Form):
-	email = TextField('Email address',	validators=[
-        	Required('Please provide a valid email address'),
-        	Length(min=6, message=(u'Email address too short')),
-        	Email(message=(u'That\'s not a valid email address.'))])
-	password = PasswordField('Pick a secure password', validators=[
-        	Required(),
-        	Length(min=6, message=(u'Please give a longer password'))])
+    email = TextField('Email address',  validators=[
+    Required('Please provide a valid email address'),
+    Length(min=6, message=(u'Email address too short')),
+    Email(message=(u'That\'s not a valid email address.'))])
+    password = PasswordField('Pick a secure password', validators=[
+    Required(),
+    Length(min=6, message=(u'Please give a longer password'))])
 
 def create_app(configfile=None):
-	app = Flask(__name__)
-	AppConfig(app, configfile)  # Flask-Appconfig is not necessary, but
+    app = Flask(__name__)
+    AppConfig(app, configfile)  # Flask-Appconfig is not necessary, but
                                 # highly recommend =)
                                 # https://github.com/mbr/flask-appconfig
-	Bootstrap(app)
-	
-	# in a real app, these should be configured through Flask-Appconfig
-	app.config['SECRET_KEY'] = 'devkey'
-	app.config['RECAPTCHA_PUBLIC_KEY'] = \
+    Bootstrap(app)
+
+    # in a real app, these should be configured through Flask-Appconfig
+    app.config['SECRET_KEY'] = 'devkey'
+    app.config['RECAPTCHA_PUBLIC_KEY'] = \
         '6Lfol9cSAAAAADAkodaYl9wvQCwBMr3qGR_PPHcw'
-	app.config['CSRF_ENABLED'] = True
+    app.config['CSRF_ENABLED'] = True
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:root@localhost/cgla_studios'
+    db.init_app(app)
 
-	@app.route('/signup', methods=['GET', 'POST'])
-	def signup():
-		if request.method == 'POST':
-	        	form = SignupForm(request.form)
-        		if form.validate():
-				dbconn = DBConnection()
-				users = dbconn.getUsersLoginInfo()
-				print users
-				user_exist =False
-				for user in users:
-					print user[0]
-					print user[1]
-					if( form.email.data == user[0] and form.password.data == user[1]):
-						user_exist =True
-						break
-				if(user_exist):
-					session['username']=form.email.data
-				else:		
-					return render_template('signinpage.html',  signinpage_form = form)
-            			#return render_template('home.html', email=form.email.data)
-            			#return render_template('getKeywordTags.html', username = session['username'])
-				return redirect(url_for('search'))
-			else:
-				return render_template('signup.html', form = form, page_title = 'Signup to Application')
-		elif 'username' in session:
-			return redirect(url_for('search'))
-		return render_template('signup.html', form = SignupForm(), page_title = 'Signup to Application')
+    @app.route('/signup', methods=['GET', 'POST'])
+    def signup():
+        if request.method == 'POST':
+            form = SignupForm(request.form)
+            if form.validate():
+                user = Users.query.filter_by(email = form.email.data.lower()).first()
+                if user and user.check_password(form.password.data):
+                    session['username'] = user.username
+                    session['user_id'] = user.user_id
+                    session['email'] = user.email
+                    return redirect(url_for('search'))
+                else:
+                    return render_template('signinpage.html',  signinpage_form = form)
+                        #return render_template('home.html', email=form.email.data)
+                        #return render_template('getKeywordTags.html', username = session['username'])
+            else:
+                return render_template('signup.html', form = form, page_title = 'Signup to Application')
+        elif 'username' in session:
+            return redirect(url_for('search'))
+        return render_template('signup.html', form = SignupForm(), page_title = 'Signup to Application')
 
-	@app.route('/getKeywordMedia')
-	@crossdomain(origin='*')
-	def getKeywordMedia():
-		keyword = request.args.get('keyword', '')
-		session['max_tag_id'] = ''
-		t = TagMedia()
-		media = t.getTags(keyword)
-		return media
+    @app.route("/api/login", methods=["POST"])
+    def login():
+        user = Users.query.filter_by(email = request.form.get("email").lower()).first()
+        if user and user.check_password(request.form.get("password").lower()):
+            return jsonify({"user_id": user.user_id, "response": 1})
+        else:
+            return jsonify({"response": -1})
 
-	@app.route('/getMoreVideos')
-        @crossdomain(origin='*')
-        def getMoreVideos():
-                keyword = request.args.get('keyword', '')
-                t = TagMedia()
-                media = t.getTags(keyword)
-                return media
+    @app.route("/api/getvideos")
+    def get_videos():
+    # request.form.get("email").lower()
+        all_videos = []
+        if "email" in session:
+            videos = SaveUserChoices.query.filter_by(email = session['email'], downloaded = 0).all()
+            for video in videos:
+                v = {}
+                user_details = video.user_name.split(" ")
+                v["uName"] = user_details[0]
+                v["uId"] = user_details[1].replace("(", "").replace(")", "")
+                v["video"] = video.video_url
+                v["date"] = video.created_time
+                v["avatar"] = video.user_profile_picture_url
+                v["prefix"] = video.prefix
+                v["standard"] = video.standard
+                v["text"] = video.user_text
+                all_videos.append(v)
+        return json.dumps(all_videos)
 
-        @app.route('/saveUserChoices')
-        @crossdomain(origin='*')
-        def saveUserChoices():
-		choices = request.args.get('choices', '')
-		choices = choices.replace("<br>","")
-		userList = choices.split(";;;")
-                i = 1
-                print 'userList..................' , userList
-		for k in userList:
-			userOptions = k.split(",:")
-			user_text = userOptions[7].replace("'s","")
-			user_name = userOptions[4].replace("'s","")
-			query = """insert into saveUserChoices (id, email ,tag , video_url, user_profile_picture_url ,user_name , created_time, media_id, prefix, standard,user_text) values (%s,'%s','%s','%s','%s','%s','%s','%s','%s',%s,'%s');""" % (int(time.time()*1000),userOptions[0],userOptions[1],userOptions[2], userOptions[3], user_name, userOptions[5],userOptions[6],str(userOptions[8]+str(i)),userOptions[9],user_text)
-			print query
+    @app.route("/api/videodownloaded/<int:video_id>", )
+    def video_downloaded(video_id):
+        video = SaveUserChoices.query.filter_by(id=video_id).first()
+        if video:
+            video.downloaded = 1
+            db.session.commit()
+        return 0
+
+    @app.route('/getKeywordMedia')
+    @crossdomain(origin='*')
+    def getKeywordMedia():
+        keyword = request.args.get('keyword', '')
+        session['max_tag_id'] = ''
+        t = TagMedia()
+        media = t.getTags(keyword)
+        return media
+
+    @app.route('/getMoreVideos')
+    @crossdomain(origin='*')
+    def getMoreVideos():
+        keyword = request.args.get('keyword', '')
+        t = TagMedia()
+        media = t.getTags(keyword)
+        return media
+
+    @app.route('/saveUserChoices')
+    @crossdomain(origin='*')
+    def saveUserChoices():
+        choices = request.args.get('choices', '')
+        choices = choices.replace("<br>","")
+        userList = choices.split(";;;")
+        i = 1
+        print 'userList..................' , userList
+
+        for k in userList:
+            userOptions = k.split(",:")
+            user_text = userOptions[7].replace("'s","")
+            user_name = userOptions[4].replace("'s","")
+            query = """insert into saveUserChoices (id, email ,tag , video_url, user_profile_picture_url ,user_name , created_time, media_id, prefix, standard,user_text) values (%s,'%s','%s','%s','%s','%s','%s','%s','%s',%s,'%s');""" % (int(time.time()*1000),session['email'],userOptions[1],userOptions[2], userOptions[3], user_name, userOptions[5],userOptions[6],str(userOptions[8]+str(i)),userOptions[9],user_text)
+            print query
                         i = i + 1
-			dbconn = DBConnection()
-			dbconn.executeQuery(query)
-		return choices	
+            dbconn = DBConnection()
+            dbconn.executeQuery(query)
+        return choices
 
-	@app.route('/search')
+    @app.route('/search')
         @crossdomain(origin='*')
         def search():
-		if 'username' in session:
-			return render_template('getKeywordTags.html', username = session['username'])
-		else:
-			return redirect(url_for('signup'))
+        if 'username' in session:
+            return render_template('getKeywordTags.html', username = session['username'])
+        else:
+            return redirect(url_for('signup'))
 
-	@app.route('/logout')
-	def logout():
-		# remove the username from the session if it's there
-		session.pop('username', None)
-		return redirect(url_for('signup'))
-	return app
+    @app.route('/logout')
+    def logout():
+        # remove the username from the session if it's there
+        session.pop('username', None)
+        return redirect(url_for('signup'))
+    return app
 
 if __name__ == '__main__':
-	create_app().run(debug=True,host='0.0.0.0')
+    create_app().run(debug=True,host='0.0.0.0')
