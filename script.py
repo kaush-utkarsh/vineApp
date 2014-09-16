@@ -92,8 +92,6 @@ def create_app(configfile=None):
                     return redirect(url_for('search'))
                 else:
                     return render_template('signinpage.html',  signinpage_form = form)
-                        #return render_template('home.html', email=form.email.data)
-                        #return render_template('getKeywordTags.html', username = session['username'])
             else:
                 return render_template('signup.html', form = form, page_title = 'Signup to Application')
         elif 'username' in session:
@@ -104,6 +102,9 @@ def create_app(configfile=None):
     def login():
         user = Users.query.filter_by(email = request.form.get("email").lower()).first()
         if user and user.check_password(request.form.get("password").lower()):
+            session['username'] = user.username
+            session['user_id'] = user.user_id
+            session['email'] = user.email
             return jsonify({"user_id": user.user_id, "response": 1})
         else:
             return jsonify({"response": -1})
@@ -130,11 +131,13 @@ def create_app(configfile=None):
 
     @app.route("/api/videodownloaded/<int:video_id>", )
     def video_downloaded(video_id):
-        video = SaveUserChoices.query.filter_by(id=video_id).first()
-        if video:
-            video.downloaded = 1
-            db.session.commit()
-        return 0
+        if "email" in session:
+            video = SaveUserChoices.query.filter_by(email = session['email'], id=video_id).first()
+            if video:
+                video.downloaded = 1
+                db.session.commit()
+            return jsonify({"response": 1})
+        return jsonify({"response": -1})
 
     @app.route('/getKeywordMedia')
     @crossdomain(origin='*')
@@ -160,7 +163,7 @@ def create_app(configfile=None):
         choices = choices.replace("<br>","")
         userList = choices.split(";;;")
         i = 1
-        print 'userList..................' , userList
+        # print 'userList..................' , userList
 
         for k in userList:
             userOptions = k.split(",:")
@@ -174,12 +177,12 @@ def create_app(configfile=None):
         return choices
 
     @app.route('/search')
-        @crossdomain(origin='*')
-        def search():
-        if 'username' in session:
-            return render_template('getKeywordTags.html', username = session['username'])
-        else:
-            return redirect(url_for('signup'))
+    @crossdomain(origin='*')
+    def search():
+    if 'username' in session:
+        return render_template('getKeywordTags.html', username = session['username'])
+    else:
+        return redirect(url_for('signup'))
 
     @app.route('/logout')
     def logout():
