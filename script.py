@@ -175,7 +175,6 @@ def create_app(configfile=None):
             # query = """insert into saveUserChoices (id, email ,tag , video_url, user_profile_picture_url ,user_name , created_time, media_id, prefix, standard,user_text) values (%s,'%s','%s','%s','%s','%s','%s','%s','%s',%s,'%s');""" % (int(time.time()*1000),session['email'],userOptions[1],userOptions[2], userOptions[3], user_name, userOptions[5],userOptions[6],str(userOptions[8]+str(i)),userOptions[9],user_text)
             db.session.add(saveChoices)
             db.session.commit()
-            print query
             i = i + 1
             # dbconn = DBConnection()
             # dbconn.executeQuery(query)
