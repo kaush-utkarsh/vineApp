@@ -118,6 +118,7 @@ def create_app(configfile=None):
             for video in videos:
                 v = {}
                 user_details = video.user_name.split(" ")
+                v["video_id"] = video.id
                 v["uName"] = user_details[0]
                 v["uId"] = user_details[1].replace("(", "").replace(")", "")
                 v["video"] = video.video_url
