@@ -170,7 +170,7 @@ def create_app(configfile=None):
             user_text = userOptions[7].replace("'s","")
             user_name = userOptions[4].replace("'s","")
             # email, tag, video_url, user_profile_picture_url, user_name, user_text, media_id, downloaded, prefix, standard, created_time):
-            saveChoices = SaveUserChoices(session['email'], tag, userOptions[1],userOptions[2], userOptions[3], user_name, user_text, userOptions[6], 0, str(userOptions[8]+str(i)), userOptions[9], userOptions[5])
+            saveChoices = SaveUserChoices(session['email'], userOptions[1],userOptions[2], userOptions[3], user_name, user_text, userOptions[6], 0, str(userOptions[8]+str(i)), userOptions[9], userOptions[5])
             # (int(time.time()*1000),session['email'],userOptions[1],userOptions[2], userOptions[3], user_name, userOptions[5],userOptions[6],str(userOptions[8]+str(i)),userOptions[9],user_text)
             # query = """insert into saveUserChoices (id, email ,tag , video_url, user_profile_picture_url ,user_name , created_time, media_id, prefix, standard,user_text) values (%s,'%s','%s','%s','%s','%s','%s','%s','%s',%s,'%s');""" % (int(time.time()*1000),session['email'],userOptions[1],userOptions[2], userOptions[3], user_name, userOptions[5],userOptions[6],str(userOptions[8]+str(i)),userOptions[9],user_text)
             db.session.add(saveChoices)
