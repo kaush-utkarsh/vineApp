@@ -93,10 +93,10 @@ def create_app(configfile=None):
                 else:
                     return render_template('signinpage.html',  signinpage_form = form)
             else:
-                return render_template('signup.html', form = form, page_title = 'Signup to Application')
+                return render_template('login.html', form = form, page_title = 'Signup to Application')
         elif 'username' in session:
             return redirect(url_for('search'))
-        return render_template('signup.html', form = SignupForm(), page_title = 'Signup to Application')
+        return render_template('login.html', form = SignupForm(), page_title = 'Signup to Application')
 
     @app.route("/api/login", methods=["POST"])
     def login_api():
@@ -182,13 +182,13 @@ def create_app(configfile=None):
         if 'username' in session:
             return render_template('getKeywordTags.html', username = session['username'])
         else:
-            return redirect(url_for('signup'))
+            return redirect(url_for('login'))
 
     @app.route('/logout')
     def logout():
         # remove the username from the session if it's there
         session.pop('username', None)
-        return redirect(url_for('signup'))
+        return redirect(url_for('login'))
     return app
 
 if __name__ == '__main__':
