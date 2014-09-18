@@ -10,7 +10,7 @@ class Users(db.Model):
     lastname = db.Column(db.String(254))
     email = db.Column(db.String(254))
     password = db.Column(db.String(254))
-    active = db.Column(db.String(254))
+    active = db.Column(db.Integer)
     time_registered = db.Column(db.DateTime)
 
     def __init__(self, username, password, firstname, lastname, email, active, time_registered):

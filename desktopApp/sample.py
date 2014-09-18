@@ -76,13 +76,13 @@ class MyFrame(wx.Frame):
             self.getDirPath()
             for child in self.panel.GetChildren():
                 child.Destroy()
-            self.toggle_btn = wx.Button(self.panel, label='Start Tracking', pos=(60, 100))
-            self.toggle_btn.Bind(wx.EVT_BUTTON, self.OnDownload)
-            cbtn = wx.Button(self.panel, label='Change Directory', pos=(160, 100))
+            # self.toggle_btn = wx.Button(self.panel, label='Start Tracking', pos=(60, 100))
+            # self.toggle_btn.Bind(wx.EVT_BUTTON, self.OnDownload)
+            cbtn = wx.Button(self.panel, label='Change Directory', pos=(60, 100))
             cbtn.Bind(wx.EVT_BUTTON, self.OnChange)
             filedirpath = wx.StaticText(self.panel, -1, "Current Directory Path:", pos=(60,140))
             self.pathText = wx.TextCtrl(self.panel, -1, str(self.dirpath), pos=(200,140), size=(360, -1))
-            cbtn = wx.Button(self.panel, label='Clear Log File', pos=(280, 100))
+            cbtn = wx.Button(self.panel, label='Clear Log File', pos=(180, 100))
             cbtn.Bind(wx.EVT_BUTTON, self.OnClear)
             self.result = wx.TextCtrl(self.panel, -1, size=(500, 250), style=wx.TE_MULTILINE, pos=(60,180))
             self.result.SetBackgroundColour('Black')
@@ -91,6 +91,7 @@ class MyFrame(wx.Frame):
             self.SetSize((675, 500))
             self.SetTitle("")
             self.Show(True)
+            self.OnDownload()
         else:
             self.SetTitle("Incorrect User details entered")
 
@@ -161,7 +162,7 @@ class MyFrame(wx.Frame):
             self.pos_y = self.pos_y + 20
             self.markVideosAsDownloaded(recordDict["vid"])
 
-    def OnDownload(self, e):
+    def OnDownload(self):
         if (os.path.exists(self.pathFilename)):
             self.getDirPath()
         else:
@@ -174,12 +175,13 @@ class MyFrame(wx.Frame):
             self.pathText.SetValue(self.dirpath)
         # print "Target path:- ", self.dirpath
         self.pos_y = 180
-        if self.toggle_btn.GetLabel() == "Start Tracking":
-            self.timer.Start(3000)
-            self.toggle_btn.SetLabel("Stop Tracking")
-        else:
-            self.timer.Stop()
-            self.toggle_btn.SetLabel("Start Tracking")
+        self.timer.Start(3000)
+        # if self.toggle_btn.GetLabel() == "Start Tracking":
+        #     self.timer.Start(3000)
+        #     self.toggle_btn.SetLabel("Stop Tracking")
+        # else:
+        #     self.timer.Stop()
+        #     self.toggle_btn.SetLabel("Start Tracking")
 
     def convertFiles(self,recordDict):
         # print "recordDict[standard]", recordDict["standard"]

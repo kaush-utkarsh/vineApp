@@ -79,8 +79,8 @@ def create_app(configfile=None):
     app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:root@localhost/cgla_studios'
     db.init_app(app)
 
-    @app.route('/signup', methods=['GET', 'POST'])
-    def signup():
+    @app.route('/login', methods=['GET', 'POST'])
+    def login():
         if request.method == 'POST':
             form = SignupForm(request.form)
             if form.validate():
@@ -99,7 +99,7 @@ def create_app(configfile=None):
         return render_template('signup.html', form = SignupForm(), page_title = 'Signup to Application')
 
     @app.route("/api/login", methods=["POST"])
-    def login():
+    def login_api():
         user = Users.query.filter_by(email = request.form.get("email").lower()).first()
         if user and user.check_password(request.form.get("password").lower()):
             session['username'] = user.username
