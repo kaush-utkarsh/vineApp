@@ -171,7 +171,7 @@ def create_app(configfile=None):
             user_name = userOptions[4].replace("'s","")
             query = """insert into saveUserChoices (id, email ,tag , video_url, user_profile_picture_url ,user_name , created_time, media_id, prefix, standard,user_text) values (%s,'%s','%s','%s','%s','%s','%s','%s','%s',%s,'%s');""" % (int(time.time()*1000),session['email'],userOptions[1],userOptions[2], userOptions[3], user_name, userOptions[5],userOptions[6],str(userOptions[8]+str(i)),userOptions[9],user_text)
             print query
-                        i = i + 1
+            i = i + 1
             dbconn = DBConnection()
             dbconn.executeQuery(query)
         return choices
@@ -179,10 +179,10 @@ def create_app(configfile=None):
     @app.route('/search')
     @crossdomain(origin='*')
     def search():
-    if 'username' in session:
-        return render_template('getKeywordTags.html', username = session['username'])
-    else:
-        return redirect(url_for('signup'))
+        if 'username' in session:
+            return render_template('getKeywordTags.html', username = session['username'])
+        else:
+            return redirect(url_for('signup'))
 
     @app.route('/logout')
     def logout():
