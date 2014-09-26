@@ -86,6 +86,12 @@
 					$rows.eq(i).show();
 				}
 			}
+			function unCheckSelectedVideos() {
+				var $rows = $("#tagsTable tr");
+				for( var  j=1; j<$rows.length;j++) {
+ 					$rows.eq(j).find('td:eq(1) input[type=checkbox]').removeAttr('checked');
+				}
+			}
 			function previousPage(){
 				pauseVideos();
 				//var $rows = $("#tagsTable tr");
@@ -166,6 +172,7 @@
 					$("#previous_page").hide();
 					$("#refresh_video").hide();
 					$("#back").hide();
+					$("#uncheck_videos").show();
                 			var options
                                 	var txtStrng = '';
 					page_no = 1;
@@ -249,8 +256,8 @@
                                         <button id="search_button" type="button" onclick="updateTable('/getKeywordMedia', true)" class="btn">Search</button>
                                         <input type="text"  placeholder="prefix" style="align-self: right"  id="prefix">
 					<select id="standard" style="align-self: right">
-						<option value="59.94">720p_59.94_MJPEG</option>
 						<option value="29.97">1080i_29.97_MJPEG</option>
+						<option value="59.94">720p_59.94_MJPEG</option>
 					</select>
                                 </form>
 
@@ -260,6 +267,8 @@
 				<button type="button" onclick="validateVideos()" class="btn" style="text-align:center;display:none;" id="val_video">Add to Shortlist</button>
 				<button type="button" onclick="previousPage()" class="btn" style="display:none;" id="previous_page">Previous page &lt;</button>
 				<button type="button" onclick="updateTablePage('/getMoreVideos')" class="btn" style="display:none;" id="next_page">Next page &gt;</button>
+				
+				<button type="button" onclick="unCheckSelectedVideos()" class="btn" style="text-align:center;display:none;" id="uncheck_videos">Uncheck All</button>
 				<button type="button" onclick="saveSelectedData()" class="btn" style="text-align:center;display:none;" id="save_video">Download</button>
 				<button type="button" onclick="validateVideos()" class="btn" style="text-align:center;display:none;" id="refresh_video">Refresh</button>
 				<button type="button" onclick="backClick()" class="btn" style="text-align:center;display:none;" id="back">Back</button>

@@ -6,7 +6,7 @@ user=root
 password=root
 
 [system_section]
-size=8
+size=50
 
 [authentication_section]
 CLIENT_ID=e2b196f4aeb24ce58bc5e10990cb0da5
