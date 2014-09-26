@@ -76,14 +76,13 @@ class MyFrame(wx.Frame):
             self.getDirPath()
             for child in self.panel.GetChildren():
                 child.Destroy()
-            # self.toggle_btn = wx.Button(self.panel, label='Start Tracking', pos=(60, 100))
-            # self.toggle_btn.Bind(wx.EVT_BUTTON, self.OnDownload)
-            cbtn = wx.Button(self.panel, label='Change Directory', pos=(60, 100))
+            cbtn = wx.Button(self.panel, label='Change Directory', pos=(60, 100), size=(130, -1))
             cbtn.Bind(wx.EVT_BUTTON, self.OnChange)
+            cbtn = wx.Button(self.panel, label='Clear Log File', pos=(200, 100))
+            cbtn.Bind(wx.EVT_BUTTON, self.OnClear)
+
             filedirpath = wx.StaticText(self.panel, -1, "Current Directory Path:", pos=(60,140))
             self.pathText = wx.TextCtrl(self.panel, -1, str(self.dirpath), pos=(200,140), size=(360, -1))
-            cbtn = wx.Button(self.panel, label='Clear Log File', pos=(180, 100))
-            cbtn.Bind(wx.EVT_BUTTON, self.OnClear)
             self.result = wx.TextCtrl(self.panel, -1, size=(500, 250), style=wx.TE_MULTILINE, pos=(60,180))
             self.result.SetBackgroundColour('Black')
             self.timer = wx.Timer(self)
@@ -122,14 +121,17 @@ class MyFrame(wx.Frame):
     def OnCloseWindow(self, event):
         self.Destroy()
 
-    def OnChange(self, e):
+    def change_directory(self):
         dialog = wx.DirDialog(None, "Choose a directory:",style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON)
         if dialog.ShowModal() == wx.ID_OK:
             print dialog.GetPath()
             dialog.Destroy()
-            self.dirpath = dialog.GetPath().replace("\\","\\\\")+ "\\\\"
-        self.pathText.SetValue(self.dirpath)
-        self.writeDirPathToFile()
+            self.dirpath = dialog.GetPath() + "\\"
+            self.writeDirPathToFile()
+            self.pathText.SetValue(self.dirpath)
+
+    def OnChange(self, e):
+        self.change_directory()
 
     def writeDirPathToFile(self):
         fo = open(self.pathFilename, "w")
@@ -141,6 +143,9 @@ class MyFrame(wx.Frame):
             with open(self.pathFilename) as fp:
                 for line in fp:
                     self.dirpath = line
+        else:
+            self.change_directory()
+
 
     def update(self, event):
         if not hasattr(self, 'processing_thread') or not self.processing_thread.is_alive():
@@ -160,28 +165,12 @@ class MyFrame(wx.Frame):
             self.downloadFiles(recordDict)
             self.result.SetForegroundColour("White")
             self.pos_y = self.pos_y + 20
-            self.markVideosAsDownloaded(recordDict["vid"])
+            self.markVideosAsDownloaded(recordDict["video_id"])
 
     def OnDownload(self):
-        if (os.path.exists(self.pathFilename)):
-            self.getDirPath()
-        else:
-            dialog = wx.DirDialog(None, "Choose a directory:",style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON)
-            if dialog.ShowModal() == wx.ID_OK:
-                print dialog.GetPath()
-            dialog.Destroy()
-            self.dirpath = dialog.GetPath().replace("\\","\\\\")+ "\\\\"
-            self.writeDirPathToFile()
-            self.pathText.SetValue(self.dirpath)
-        # print "Target path:- ", self.dirpath
+        self.getDirPath()
         self.pos_y = 180
         self.timer.Start(3000)
-        # if self.toggle_btn.GetLabel() == "Start Tracking":
-        #     self.timer.Start(3000)
-        #     self.toggle_btn.SetLabel("Stop Tracking")
-        # else:
-        #     self.timer.Stop()
-        #     self.toggle_btn.SetLabel("Start Tracking")
 
     def convertFiles(self,recordDict):
         # print "recordDict[standard]", recordDict["standard"]
