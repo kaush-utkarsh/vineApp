@@ -22,25 +22,25 @@ class TagMedia:
   def getTags(self,tag_name):
     try:
       if tag_name.isdigit():
-        print "tag_name:", tag_name
+        # print "tag_name:", tag_name
         recent_media, next = self.api.user_recent_media(user_id=tag_name,max_id = session['max_tag_id'])
 
       else:
         recent_media, next = self.api.tag_recent_media(tag_name=tag_name,max_tag_id = session['max_tag_id'])
 
       if next is None:
-        print "quitting: ", next
+        # print "quitting: ", next
         return json.dumps(self.media_list)
 
-      print "next url is ", next
+      # print "next url is ", next
       mag_tax_id = next.split("&")[1].split("=")[1]
       session['max_tag_id'] = mag_tax_id
       for rm in recent_media:
         tag_info = {}
         if(rm.type == "video"):
           try:
-            print "rm.created_time...", rm.created_time
-            print "converted time" , self.convertToPTTimezone(rm.created_time)
+            # print "rm.created_time...", rm.created_time
+            # print "converted time" , self.convertToPTTimezone(rm.created_time)
             tag_info["serial_no"] = int(len(self.media_list) + 1)
             tag_info["tag_url"] = rm.get_standard_resolution_url()
             tag_info["full_name"] = rm.user.username + " (" + rm.user.id + ") <br>" + rm.user.full_name
@@ -55,14 +55,14 @@ class TagMedia:
               self.media_list.append(tag_info)
           except:
             continue
-      print "len(self.media_list)", len(self.media_list)
+      # print "len(self.media_list)", len(self.media_list)
       #while (len(self.media_list) < 30):
       if (len(self.media_list) < int(self.videos_size)):
         self.getTags(tag_name=tag_name)
       return json.dumps(self.media_list)
     except Exception,e:
       import traceback
-      print traceback.print_exc()
+      # print traceback.print_exc()
       return json.dumps(self.media_list)
 
   def convertToPTTimezone(self,created_time):
@@ -79,7 +79,7 @@ class TagMedia:
     t1 = self.convertToPTTimezone(created_time)
     diff = t2 - t1
     diff =str(diff)
-    print "difference is ", diff
+    # print "difference is ", diff
     if len(diff.split(",")) > 1:
       return diff.split(",")[0]
     else:
