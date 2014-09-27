@@ -13,6 +13,7 @@ import json
 import time
 from models import *
 from connectDatabase import DBConnection
+import re
 
 def crossdomain(origin=None, methods=None, headers=None,
                 max_age=21600, attach_to_all=True,
@@ -117,10 +118,11 @@ def create_app(configfile=None):
             videos = SaveUserChoices.query.filter_by(email = session['email'], downloaded = 0).all()
             for video in videos:
                 v = {}
-                user_details = video.user_name.split(" ")
+                # user_details = video.user_name.split(" ")
+                user_details = re.search( r'(.*)\((\d+)\)', video.user_name, re.M|re.I)
                 v["video_id"] = video.id
-                v["uName"] = user_details[0]
-                v["uId"] = user_details[1].replace("(", "").replace(")", "")
+                v["uName"] = user_details.group(1).strip() # user_details[0]
+                v["uId"] = user_details.group(2).strip() # user_details[1].replace("(", "").replace(")", "")
                 v["video"] = video.video_url
                 v["date"] = video.created_time
                 v["avatar"] = video.user_profile_picture_url
