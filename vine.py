@@ -66,7 +66,7 @@ class Vine(object):
         if len(media_list) < self.videos_size and vt.get("nextPage", 0) > 0:
             self.search(tag, vt.get("nextPage"), media_list)
 
-        return media_list[0:self.videos_size]
+        return json.dumps(media_list[0:self.videos_size])
 
     def _call(self, call, params=None, data=None):
         """Make an API call. Return the parsed response. If login has
