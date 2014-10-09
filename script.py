@@ -14,6 +14,7 @@ import time
 from models import *
 from connectDatabase import DBConnection
 import re
+from vine import Vine
 
 def crossdomain(origin=None, methods=None, headers=None,
                 max_age=21600, attach_to_all=True,
@@ -79,6 +80,7 @@ def create_app(configfile=None):
     app.config['CSRF_ENABLED'] = True
     app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:root@localhost/cgla_studios'
     db.init_app(app)
+    vine = Vine()
 
     @app.route('/login', methods=['GET', 'POST'])
     def login():
@@ -146,6 +148,10 @@ def create_app(configfile=None):
     @crossdomain(origin='*')
     def getKeywordMedia():
         keyword = request.args.get('keyword', '')
+        site = request.args.get('site', '')
+        if site == 'vine':
+            return vine.search(keyword)
+
         session['max_tag_id'] = ''
         t = TagMedia()
         media = t.getTags(keyword)
