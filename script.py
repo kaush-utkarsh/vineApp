@@ -201,7 +201,7 @@ def create_app(configfile=None):
             data = {}
             data["username"] = session['username']
             data["video_limit"] = VIDEOS_LIMIT
-            return render_template('getKeywordTags.html', username = session['username'])
+            return render_template('getKeywordTags.html', data=data)
         else:
             return redirect(url_for('login'))
 
