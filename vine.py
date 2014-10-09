@@ -5,6 +5,7 @@ import logging
 import requests
 from utils import *
 import ConfigParser
+from flask import  session
 
 BASE_URL = "https://api.vineapp.com/"
 
@@ -65,6 +66,8 @@ class Vine(object):
 
         if len(media_list) < self.videos_size and vt.get("nextPage", 0) > 0:
             self.search(tag, vt.get("nextPage"), media_list)
+        else:
+            session['nextPage'] = vt.get("nextPage")
 
         return json.dumps(media_list[0:self.videos_size])
 

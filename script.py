@@ -161,6 +161,10 @@ def create_app(configfile=None):
     @crossdomain(origin='*')
     def getMoreVideos():
         keyword = request.args.get('keyword', '')
+        site = request.args.get('site', '')
+        if site == 'vine':
+            return vine.search(keyword, session.get("nextPage", 1))
+
         t = TagMedia()
         media = t.getTags(keyword)
         return media
