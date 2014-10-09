@@ -60,7 +60,6 @@ class Vine(object):
                     media_list.append(media)
 
         session['nextPage'] = vt.get("nextPage")
-        print session['nextPage']
         if len(media_list) < VIDEOS_LIMIT and vt.get("nextPage", 0) > 0:
             self.search(tag, vt.get("nextPage"), media_list)
 
