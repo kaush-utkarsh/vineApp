@@ -184,7 +184,7 @@
         $("#loading").show();
         $.ajax({
             //async: true,
-            url: url + "?keyword=" + $('#keyword').val(),
+            url: url + "?keyword=" + $('#keyword').val() + "&site=" + $("#search-site").val(),
             dataType: 'json',
             success: function(data, textStatus, jqXHR) {
                 $.each(data, function(idx, obj) {
@@ -249,6 +249,10 @@
                 </h4>
                 <form id="input_form" class="form-search" style="text-align:center;">
                     <input type="text" class="input-medium search-query" id="keyword">
+                    <select id="search-site" style="align-self: right">
+                        <option value="instagram">Instagram</option>
+                        <option value="vine">Vine</option>
+                    </select>
                     <button id="search_button" type="button" onclick="updateTable('/getKeywordMedia', true)" class="btn">Search</button>
                     <input type="text" placeholder="prefix" style="align-self: right" id="prefix">
                     <select id="standard" style="align-self: right">
