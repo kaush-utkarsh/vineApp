@@ -59,10 +59,10 @@ class Vine(object):
                     media["id"] = v.get("postId")
                     media_list.append(media)
 
+        session['nextPage'] = vt.get("nextPage")
+        print session['nextPage']
         if len(media_list) < VIDEOS_LIMIT and vt.get("nextPage", 0) > 0:
             self.search(tag, vt.get("nextPage"), media_list)
-        else:
-            session['nextPage'] = vt.get("nextPage")
 
         return json.dumps(media_list[0:VIDEOS_LIMIT])
 
