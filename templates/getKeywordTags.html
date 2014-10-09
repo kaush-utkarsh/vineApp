@@ -187,9 +187,14 @@
             url: url + "?keyword=" + $('#keyword').val() + "&site=" + $("#search-site").val(),
             dataType: 'json',
             success: function(data, textStatus, jqXHR) {
+                if(data.length < {{ data.video_limit }}){
+                    $("#next_page").hide();
+                } else {
+                    $("#next_page").show();
+                }
                 $.each(data, function(idx, obj) {
                     //val = "'" + obj.full_name + "','"+obj.tag_url + "'";
-                    val = "{{ username }}" + ",:" + $('#keyword').val() + ",:" + obj.tag_url + ",:" + obj.profile_picture + ",:" + obj.full_name + ",:" + obj.created_time + ",:" + obj.id + ",:" + escape(obj.text);
+                    val = "{{ data.username }}" + ",:" + $('#keyword').val() + ",:" + obj.tag_url + ",:" + obj.profile_picture + ",:" + obj.full_name + ",:" + obj.created_time + ",:" + obj.id + ",:" + escape(obj.text);
                     txtStrng += "<tr>";
                     txtStrng += "<td><center><font size=\"+2\">" + obj.serial_no + "</font></center></td>";
                     txtStrng += "<td><center><input type=\"checkbox\"  name=\"case[]\" value = \"" + val + "\" onchange=\"toggleCheckbox(this, '" + obj.id + "')\"></center></td>";

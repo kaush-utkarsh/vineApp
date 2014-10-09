@@ -3,20 +3,16 @@ from flask import  session
 import json
 import types
 import datetime
-import ConfigParser
 import datetime
 from pytz import timezone
 import pytz
+from config import *
 
 class TagMedia:
 
   def __init__(self):
     # Parse the arguments
-    config = ConfigParser.ConfigParser()
-    config.read('config.txt')
-    self.videos_size = config.get('system_section','size')
-    self.access_token = "36207530.e2b196f.fc6b55f228d04f3bbb110629f4b1cc19"
-    self.api = InstagramAPI(access_token=self.access_token)
+    self.api = InstagramAPI(access_token=ACCESS_TOKEN)
     self.media_list = []
 
   def getTags(self,tag_name):
@@ -49,7 +45,7 @@ class TagMedia:
             tag_info["text"] = rm.caption.text
             tag_info["tag"] = tag_name
             tag_info["id"] = rm.id
-            if(len(self.media_list) == int(self.videos_size)):
+            if(len(self.media_list) == int(VIDEOS_LIMIT)):
               break
             else:
               self.media_list.append(tag_info)
@@ -57,7 +53,7 @@ class TagMedia:
             continue
       # print "len(self.media_list)", len(self.media_list)
       #while (len(self.media_list) < 30):
-      if (len(self.media_list) < int(self.videos_size)):
+      if (len(self.media_list) < int(VIDEOS_LIMIT)):
         self.getTags(tag_name=tag_name)
       return json.dumps(self.media_list)
     except Exception,e:

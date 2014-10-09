@@ -6,8 +6,7 @@ import requests
 from utils import *
 import ConfigParser
 from flask import  session
-
-BASE_URL = "https://api.vineapp.com/"
+from config import *
 
 class VineError(Exception):
     def __init__(self, response):
@@ -22,10 +21,6 @@ class Vine(object):
         self._user_id = None
         self._key = None
         self.date_fmt = '%Y-%m-%dT%H:%M:%S.%f'
-
-        config = ConfigParser.ConfigParser()
-        config.read('config.txt')
-        self.videos_size = int(config.get('system_section','size'))
 
     def login(self, username, password):
         response = self._call("users/authenticate", data={"username": username, "password": password})
@@ -64,19 +59,19 @@ class Vine(object):
                     media["id"] = v.get("postId")
                     media_list.append(media)
 
-        if len(media_list) < self.videos_size and vt.get("nextPage", 0) > 0:
+        if len(media_list) < VIDEOS_LIMIT and vt.get("nextPage", 0) > 0:
             self.search(tag, vt.get("nextPage"), media_list)
         else:
             session['nextPage'] = vt.get("nextPage")
 
-        return json.dumps(media_list[0:self.videos_size])
+        return json.dumps(media_list[0:VIDEOS_LIMIT])
 
     def _call(self, call, params=None, data=None):
         """Make an API call. Return the parsed response. If login has
         been called, make an authenticated call. If data is not None,
         it's a post request.
         """
-        url = BASE_URL + call
+        url = VINE_API_BASE_URL + call
         headers = {"User-Agent": "com.vine.iphone/1.0.3 (unknown, iPhone OS 6.0.1, iPhone, Scale/2.000000)",
                    "Accept-Language": "en, en-us;q=0.8"}
         if self._key:

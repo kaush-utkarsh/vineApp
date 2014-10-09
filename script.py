@@ -15,6 +15,7 @@ from models import *
 from connectDatabase import DBConnection
 import re
 from vine import Vine
+from config import *
 
 def crossdomain(origin=None, methods=None, headers=None,
                 max_age=21600, attach_to_all=True,
@@ -197,6 +198,9 @@ def create_app(configfile=None):
     @crossdomain(origin='*')
     def search():
         if 'username' in session:
+            data = {}
+            data["username"] = session['username']
+            data["video_limit"] = VIDEOS_LIMIT
             return render_template('getKeywordTags.html', username = session['username'])
         else:
             return redirect(url_for('login'))
