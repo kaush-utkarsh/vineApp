@@ -187,9 +187,7 @@
             url: url + "?keyword=" + $('#keyword').val(),
             dataType: 'json',
             success: function(data, textStatus, jqXHR) {
-                //data - response from server
-                options = data;
-                $.each(options, function(idx, obj) {
+                $.each(data, function(idx, obj) {
                     //val = "'" + obj.full_name + "','"+obj.tag_url + "'";
                     val = "{{ username }}" + ",:" + $('#keyword').val() + ",:" + obj.tag_url + ",:" + obj.profile_picture + ",:" + obj.full_name + ",:" + obj.created_time + ",:" + obj.id + ",:" + escape(obj.text);
                     txtStrng += "<tr>";
