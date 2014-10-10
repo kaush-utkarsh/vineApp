@@ -173,9 +173,9 @@
         }
 
         $("#loading").show();
+        var search_site = $("#search-site").val();
         $.ajax({
             //async: true,
-            var search_site = $("#search-site").val();
             url: url + "?keyword=" + $('#keyword').val() + "&site=" + search_site,
             dataType: 'json',
             success: function(data, textStatus, jqXHR) {
