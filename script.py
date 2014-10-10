@@ -164,7 +164,6 @@ def create_app(configfile=None):
         keyword = request.args.get('keyword', '')
         site = request.args.get('site', '')
         if site == 'vine':
-            print session.get("nextPage", 1)
             return vine.search(keyword, session.get("nextPage", 1))
 
         t = TagMedia()

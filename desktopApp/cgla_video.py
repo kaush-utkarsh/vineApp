@@ -156,12 +156,12 @@ class MyFrame(wx.Frame):
         self.getVideos()
         for recordDict in self.videosList:
             # print self.videosList
-            recordDict["video_filename"] = self.dirpath + recordDict["prefix"] + "." + recordDict["video"].split("/")[-1].split(".")[-1]
-            recordDict["avatar_filename"] = self.dirpath + recordDict["prefix"] + "." + recordDict["avatar"].split("/")[-1].split(".")[-1]
-            recordDict["xml_filename"] = self.dirpath + recordDict["prefix"] + ".xml"
-            recordDict["mov_filename"] = self.dirpath + recordDict["prefix"] + ".mov"
-            recordDict["wav_filename"] = self.dirpath + recordDict["prefix"] + ".wav"
-            video_path = self.dirpath + recordDict["video"].split("/")[-1]
+            dest_path = self.dirpath + recordDict["prefix"]
+            recordDict["video_filename"] = dest_path + "." + recordDict["video"].split("/")[-1].split("?")[0].split(".")[-1]
+            recordDict["avatar_filename"] = dest_path + "." + recordDict["avatar"].split("/")[-1].split("?")[0].split(".")[-1]
+            recordDict["xml_filename"] = dest_path + ".xml"
+            recordDict["mov_filename"] = dest_path + ".mov"
+            recordDict["wav_filename"] = dest_path + ".wav"
             self.downloadFiles(recordDict)
             self.result.SetForegroundColour("White")
             self.pos_y = self.pos_y + 20
