@@ -43,8 +43,9 @@ class SaveUserChoices(db.Model):
     prefix = db.Column(db.String(254))
     standard = db.Column(db.Float)
     created_time = db.Column(db.DateTime)
+    site = db.Column(db.String(20))
 
-    def __init__(self, email, tag, video_url, user_profile_picture_url, user_name, user_text, media_id, downloaded, prefix, standard, created_time):
+    def __init__(self, email, tag, video_url, user_profile_picture_url, user_name, user_text, media_id, downloaded, prefix, standard, created_time, site):
         self.email = email.lower()
         self.tag = tag
         self.video_url = video_url
@@ -56,3 +57,4 @@ class SaveUserChoices(db.Model):
         self.prefix = prefix
         self.standard = standard
         self.created_time = created_time
+        self.site = site

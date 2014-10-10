@@ -206,6 +206,9 @@ class MyFrame(wx.Frame):
     def createXML(self, recordDict):
         post = ET.Element("post")
 
+        site = ET.SubElement(post, "site")
+        site.text = recordDict["site"]
+
         user = ET.SubElement(post, "user")
 
         UName = ET.SubElement(user, "UName")

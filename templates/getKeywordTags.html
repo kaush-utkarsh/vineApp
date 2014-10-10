@@ -56,13 +56,6 @@
         pauseVideos();
         var $rows = $("#tagsTable tr");
         showPage();
-        /*
-                for(var i=1; i<$rows.length; i++){
-                    $rows.eq(i).hide();
-                }
-                for(var i=$rows.length-tot_videos;i< $rows.length;i++){
-                    $rows.eq(i).show();
-                }*/
         fixSerialNumber();
         $("#val_video").show();
         $("#save_video").hide();
@@ -75,9 +68,7 @@
 
     function showPage() {
         var $rows = $("#tagsTable tr");
-        for (var i = 1; i < $rows.length; i++) {
-            $rows.eq(i).hide();
-        }
+        $rows.slice(1).hide()
         var stp = starting_tag_page[$("#keyword").val()];
         for (var i = stp + (tot_videos * (page_no - 1)); i <= stp + (page_no * tot_videos) - 1; i++) {
             $rows.eq(i).show();
@@ -194,7 +185,7 @@
                 }
                 $.each(data, function(idx, obj) {
                     //val = "'" + obj.full_name + "','"+obj.tag_url + "'";
-                    val = "{{ data.username }}" + ",:" + $('#keyword').val() + ",:" + obj.tag_url + ",:" + obj.profile_picture + ",:" + obj.full_name + ",:" + obj.created_time + ",:" + obj.id + ",:" + escape(obj.text);
+                    val = "{{ data.username }}" + ",:" + $('#keyword').val() + ",:" + obj.tag_url + ",:" + obj.profile_picture + ",:" + obj.full_name + ",:" + obj.created_time + ",:" + obj.id + ",:" + $("#search-site").val() + ",:" + escape(obj.text);
                     txtStrng += "<tr>";
                     txtStrng += "<td><center><font size=\"+2\">" + obj.serial_no + "</font></center></td>";
                     txtStrng += "<td><center><input type=\"checkbox\"  name=\"case[]\" value = \"" + val + "\" onchange=\"toggleCheckbox(this, '" + obj.id + "')\"></center></td>";
