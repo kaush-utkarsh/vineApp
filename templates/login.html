@@ -18,6 +18,10 @@
                 {{ form.password(class="form-control", placeholder="Password") }}
             </div>
             <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+            <br>
+            {% if error %}
+                <div class="alert alert-danger" role="alert"><p class="error"><strong>Error: </strong>Wrong username/password. Please contact CG Social administrator for access.</p></div>
+            {% endif %}
         </div>
     </form>
 </div>

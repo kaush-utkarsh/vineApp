@@ -23,14 +23,14 @@ class TagMedia:
 
       else:
         recent_media, next = self.api.tag_recent_media(tag_name=tag_name,max_tag_id = session['max_tag_id'])
-
-      if next is None:
-        # print "quitting: ", next
+      #print len(recent_media)
+      if len(recent_media) <= 0 and next is None:
+        print "quitting: ", next
         return json.dumps(self.media_list)
 
       # print "next url is ", next
-      mag_tax_id = next.split("&")[1].split("=")[1]
-      session['max_tag_id'] = mag_tax_id
+#      mag_tax_id = next.split("&")[1].split("=")[1]
+#      session['max_tag_id'] = mag_tax_id
       for rm in recent_media:
         tag_info = {}
         if(rm.type == "video"):
@@ -45,6 +45,8 @@ class TagMedia:
             tag_info["text"] = rm.caption.text
             tag_info["tag"] = tag_name
             tag_info["id"] = rm.id
+            tag_info["media_id"] = rm.id
+            tag_info["site"] = "instagram"
             if(len(self.media_list) == int(VIDEOS_LIMIT)):
               break
             else:
@@ -53,12 +55,14 @@ class TagMedia:
             continue
       # print "len(self.media_list)", len(self.media_list)
       #while (len(self.media_list) < 30):
-      if (len(self.media_list) < int(VIDEOS_LIMIT)):
+      if (len(self.media_list) < int(VIDEOS_LIMIT)) and next:
+        mag_tax_id = next.split("&")[1].split("=")[1]
+        session['max_tag_id'] = mag_tax_id
         self.getTags(tag_name=tag_name)
       return json.dumps(self.media_list)
     except Exception,e:
       import traceback
-      # print traceback.print_exc()
+      print traceback.print_exc()
       return json.dumps(self.media_list)
 
   def convertToPTTimezone(self,created_time):

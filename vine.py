@@ -57,6 +57,8 @@ class Vine(object):
                     media["text"] = v.get("description")
                     media["tag"] = tag
                     media["id"] = v.get("postId")
+                    media["media_id"] = v.get("postId")
+                    media["site"] = "vine"
                     media_list.append(media)
 
         session['nextPage'] = vt.get("nextPage")

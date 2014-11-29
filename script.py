@@ -79,7 +79,7 @@ def create_app(configfile=None):
     app.config['RECAPTCHA_PUBLIC_KEY'] = \
         '6Lfol9cSAAAAADAkodaYl9wvQCwBMr3qGR_PPHcw'
     app.config['CSRF_ENABLED'] = True
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:root@localhost/cgla_studios'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:Chris@cgla@localhost/cgla_studios'
     db.init_app(app)
     vine = Vine()
 
@@ -95,7 +95,7 @@ def create_app(configfile=None):
                     session['email'] = user.email
                     return redirect(url_for('search'))
                 else:
-                    return render_template('signinpage.html',  signinpage_form = form)
+                    return render_template('login.html', form = form, error="Invalid credentials")
             else:
                 return render_template('login.html', form = form, page_title = 'Signup to Application')
         elif 'username' in session:
@@ -149,59 +149,159 @@ def create_app(configfile=None):
     @app.route('/getKeywordMedia')
     @crossdomain(origin='*')
     def getKeywordMedia():
-        keyword = request.args.get('keyword', '')
-        site = request.args.get('site', '')
-        if site == 'vine':
-            return vine.search(keyword)
+        if "email" in session:
+            keyword = request.args.get('keyword', '')
+            site = request.args.get('site', '')
+            if site == 'vine':
+                return vine.search(keyword, media_list=[])
 
-        session['max_tag_id'] = ''
-        t = TagMedia()
-        media = t.getTags(keyword)
-        return media
+            session['max_tag_id'] = ''
+            t = TagMedia()
+            media = t.getTags(keyword)
+            return media
+        return jsonify({"response": -1})
+
+    @app.route("/getplaylist", methods=['POST'])
+    @crossdomain(origin='*')
+    def get_playlist_videos():
+        all_videos = []
+        if "email" in session and request.form.get("playlist"):
+            videos = db.session.query(SaveUserChoices).filter(SaveUserChoices.email == session['email'], SaveUserChoices.playlist==request.form.get("playlist"), SaveUserChoices.downloaded != -5).all()
+            i = 1
+            for video in videos:
+                media = {}
+                media["serial_no"] = i
+                media["tag_url"] = video.video_url
+                media["full_name"] = video.user_name
+                media["profile_picture"] = video.user_profile_picture_url
+                media["created_time"] = video.created_time
+                media["text"] = video.user_text
+                media["tag"] = video.tag
+                media["id"] = video.id
+                media["media_id"] = video.media_id
+                media["site"] = video.site
+                all_videos.append(media)
+                i = i+1
+        return json.dumps(all_videos)
+
+    def get_video_playlist():
+        temp_list = db.session.query(SaveUserChoices.playlist).filter(SaveUserChoices.email == session['email'], SaveUserChoices.playlist != None).distinct().all()
+        playlists = []
+        for pl in temp_list:
+            playlists.append(pl[0])
+        return playlists
+
+    @app.route('/getplaylists')
+    @crossdomain(origin='*')
+    def getplaylists():
+        return json.dumps(get_video_playlist())
+
+    @app.route('/movevideos', methods=['POST'])
+    @crossdomain(origin='*')
+    def movevideos():
+        if "email" in session:
+            data = request.json
+            new_playlist = data.get("playlist")
+            vid_ids = data.get("vidIds", [])
+            db.session.query(SaveUserChoices).filter(SaveUserChoices.email == session['email'], SaveUserChoices.downloaded == -1, SaveUserChoices.media_id.in_(vid_ids)).update({"playlist":new_playlist}, synchronize_session=False)
+            db.session.commit()
+            return jsonify({"response": 1})
+        return jsonify({"response": -1})
+
+    @app.route('/downloadvideos', methods=['POST'])
+    @crossdomain(origin='*')
+    def downloadvideos():
+        if "email" in session:
+            data = request.json
+            playlist = data.get("playlist")
+            vid_ids = data.get("vidIds", [])
+            db.session.query(SaveUserChoices).filter(SaveUserChoices.email == session['email'], SaveUserChoices.playlist == playlist, SaveUserChoices.media_id.in_(vid_ids)).update({"downloaded":0}, synchronize_session=False)
+            db.session.commit()
+            return jsonify({"response": 1})
+        return jsonify({"response": -1})
 
     @app.route('/getMoreVideos')
     @crossdomain(origin='*')
     def getMoreVideos():
-        keyword = request.args.get('keyword', '')
-        site = request.args.get('site', '')
-        if site == 'vine':
-            return vine.search(keyword, session.get("nextPage", 1))
+        if "email" in session:
+            keyword = request.args.get('keyword', '')
+            site = request.args.get('site', '')
+            if site == 'vine':
+                return vine.search(keyword, session.get("nextPage", 1), media_list=[])
 
-        t = TagMedia()
-        media = t.getTags(keyword)
-        return media
+            t = TagMedia()
+            media = t.getTags(keyword)
+            return media
+        return jsonify({"response": -1})
 
-    @app.route('/saveUserChoices')
+    @app.route('/saveUserChoices', methods=['POST'])
     @crossdomain(origin='*')
     def saveUserChoices():
-        choices = request.args.get('choices', '')
-        choices = choices.replace("<br>","")
-        userList = choices.split(";;;")
-        i = 1
-        # print 'userList..................' , userList
+        if "email" in session:
+            i = 1
+            data = request.json
+            video_list = data.get("videos")
+            status = data.get("status")
+            playlist = data.get("playlist")
 
-        for k in userList:
-            userOptions = k.split(",:")
-            user_text = userOptions[8].replace("'s","")
-            user_name = userOptions[4].replace("'s","")
-            # email, tag, video_url, user_profile_picture_url, user_name, user_text, media_id, downloaded, prefix, standard, created_time):
-            saveChoices = SaveUserChoices(session['email'], userOptions[1],userOptions[2], userOptions[3], user_name, user_text, userOptions[6], 0, str(userOptions[9]+str(i)), userOptions[10], userOptions[5], userOptions[7])
-            # (int(time.time()*1000),session['email'],userOptions[1],userOptions[2], userOptions[3], user_name, userOptions[5],userOptions[6],str(userOptions[8]+str(i)),userOptions[9],user_text)
-            # query = """insert into saveUserChoices (id, email ,tag , video_url, user_profile_picture_url ,user_name , created_time, media_id, prefix, standard,user_text) values (%s,'%s','%s','%s','%s','%s','%s','%s','%s',%s,'%s');""" % (int(time.time()*1000),session['email'],userOptions[1],userOptions[2], userOptions[3], user_name, userOptions[5],userOptions[6],str(userOptions[8]+str(i)),userOptions[9],user_text)
+            # SaveUserChoices.query.filter_by(email = session['email'], downloaded = -1, playlist=playlist).delete()
+
+            for k in video_list:
+                user_text = k.get("text").replace("'s","")
+                user_name = k.get("full_name").replace("'s","")
+                saveChoices = SaveUserChoices(session['email'], k.get("tag"), k.get("tag_url"), k.get("profile_picture"), user_name, user_text, k.get("id"), status, str(k.get("prefix")+str(i)), k.get("standard"), k.get("created_time"), k.get("site"), playlist)
+                db.session.add(saveChoices)
+                i = i + 1
+            db.session.commit()
+            return jsonify({"status": 1})
+        return jsonify({"response": -1})
+
+    @app.route('/addplaylist', methods=['POST'])
+    @crossdomain(origin='*')
+    def addplaylist():
+        if "email" in session:
+            data = request.json
+            playlist = data.get("playlist")
+
+            # SaveUserChoices.query.filter_by(email = session['email'], downloaded = -1, playlist=playlist).delete()
+            saveChoices = SaveUserChoices(session['email'], "playlist", "", "", "", "", 0, -5, "", "", "", "", playlist)
             db.session.add(saveChoices)
             db.session.commit()
-            i = i + 1
-            # dbconn = DBConnection()
-            # dbconn.executeQuery(query)
-        return jsonify({"status": 1})
+            return jsonify({"status": 1})
+        return jsonify({"response": -1})
+
+    @app.route('/deletevideos', methods=['POST'])
+    @crossdomain(origin='*')
+    def deleteVideos():
+        if "email" in session:
+            data = request.json
+            playlist = data.get("playlist")
+            vid_ids = data.get("vidIds", [])
+            db.session.query(SaveUserChoices).filter(SaveUserChoices.email == session['email'], SaveUserChoices.playlist == playlist, SaveUserChoices.media_id.in_(vid_ids)).delete(synchronize_session=False)
+            db.session.commit()
+            return jsonify({"response": 1})
+        return jsonify({"response": -1})
+
+    @app.route('/deleteplaylist', methods=['POST'])
+    @crossdomain(origin='*')
+    def deleteplaylist():
+        if "email" in session:
+            data = request.json
+            playlist = data.get("playlist")
+            db.session.query(SaveUserChoices).filter(SaveUserChoices.email == session['email'], SaveUserChoices.playlist == playlist).delete(synchronize_session=False)
+            db.session.commit()
+            return jsonify({"response": 1})
+        return jsonify({"response": -1})
 
     @app.route('/search')
     @crossdomain(origin='*')
     def search():
         if 'username' in session:
+
             data = {}
             data["username"] = session['username']
             data["video_limit"] = VIDEOS_LIMIT
+            data["playlists"] = get_video_playlist()
             return render_template('getKeywordTags.html', data=data)
         else:
             return redirect(url_for('login'))

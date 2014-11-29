@@ -12,9 +12,9 @@
         background: url('../images/loading.gif') 50% 50% no-repeat rgb(249,249,249);
 }
 
-#header-fixed { 
-    position: fixed; 
-    top: 180px; display:none;
+#header-fixed {
+    position: fixed;
+    top: 229px; display:none;
     background-color:white;
 }
 
